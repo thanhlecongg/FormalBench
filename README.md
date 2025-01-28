@@ -1,4 +1,5 @@
 # FormalBench: A Comprehensive Benchmark for Formal Specification Inference
+[![Build and test](https://github.com/thanhlecongg/FormalBench/actions/workflows/build_and_test.yml/badge.svg)](https://github.com/thanhlecongg/FormalBench/actions/workflows/build_and_test.yml)
 
 ## Prerequisites
 
