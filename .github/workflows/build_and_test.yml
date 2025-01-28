@@ -31,4 +31,4 @@ jobs:
     - name: Test
       run: |
         . .env/bin/activate
-        python -m pytest tests/test_verifier.py
+        python -m pytest tests/build_and_test.py

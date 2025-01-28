@@ -106,6 +106,9 @@ class OpenJMLVerifier(Verifier):
         # Call the docker container to run the command
         exec_result = self.container.exec_run(cmd_splitted)
         if exec_result.exit_code == 124:
+            tar_file = path + ".tar"
+            if os.path.exists(tar_file):
+                os.remove(tar_file)
             return (-1, "Timeout")
         output = exec_result.output.decode("utf-8")
         
@@ -139,6 +142,9 @@ class OpenJMLVerifier(Verifier):
         # Call the docker container to run the command
         exec_result = self.container.exec_run(cmd_splitted)
         if exec_result.exit_code == 124:
+            tar_file = path + ".tar"
+            if os.path.exists(tar_file):
+                os.remove(tar_file)
             return (-1, "Timeout")
         output = exec_result.output.decode("utf-8")
         tar_file = path + ".tar"
