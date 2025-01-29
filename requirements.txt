@@ -1,3 +1,4 @@
+pip==25.0
 docker==7.1.0
 pytest==8.3.4
 psutil==6.1.1
@@ -5,3 +6,10 @@ pyright==1.1.392
 wheel==0.45.1
 tqdm==4.67.1
 pyright==1.1.392
+langgraph==0.2.68
+langchain-core==0.3.32
+langsmith==0.3.2
+langchain_anthropic==0.3.4
+langchain_openai==0.3.2
+langchain_huggingface==0.1.2
+python-dotenv==1.0.1

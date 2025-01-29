@@ -3,3 +3,5 @@
 tests/testcases/results/completeness
 FormalBench.egg-info
 executables
+tmp/*
+FormalBench/config/.env
