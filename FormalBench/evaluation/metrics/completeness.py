@@ -134,12 +134,9 @@ class CoverageScore():
     ) -> Tuple[str, int]:
         
         mutant_path = os.path.join(mutation_dir, mutant, basename)
-        print("Verifying mutant: {}".format(mutant_path))
         n_errors, output = self.verifier.verify(path=mutant_path,
                                                 basedir=mutant,
                                                 timeout=timeout)
-        print("Output", output)
-        print("Errors: {}".format(n_errors))
         return mutant, n_errors
     
 def eval_completeness(
@@ -151,7 +148,7 @@ def eval_completeness(
         language: str = "java", 
         data_ids: Optional[str] = None,
         timeout: int = 300
-    ) -> Tuple[float, List[float]]:
+    ) -> Tuple[float, List[float], List[str]]:
     
     assert os.path.exists(data_dir), "Data directory not found: {}".format(data_dir)
     
@@ -171,21 +168,16 @@ def eval_completeness(
         benchmarks = data_ids.split(",")
 
     coverage_results = []
-    unsound = 0
+    inconsistent_instances = []
     for b in benchmarks:
         coverage_score = CoverageScore(verifier, mutator)
         coverage, survived, total = coverage_score.measure_completeness(
             os.path.join(data_dir, f"{b}{ending}"),
             os.path.join(save_dir, b), n_proc, timeout)
         if coverage is None:
-            unsound += 1
-            print(f"Skipping {b}")
+            inconsistent_instances.append(b)
             continue
         coverage_results.append(coverage)
     
-    print("Completeness evaluation completed")
-    print("Unsound: {}".format(unsound))
-    avg_coverage = sum(coverage_results) / len(coverage_results)
-    print("Average completeness: {:.2f}".format(avg_coverage))
-    
-    return avg_coverage, coverage_results
+    avg_coverage = sum(coverage_results) / len(coverage_results)    
+    return avg_coverage, coverage_results, inconsistent_instances

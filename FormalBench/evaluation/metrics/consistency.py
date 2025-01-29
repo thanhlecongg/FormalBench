@@ -78,11 +78,7 @@ def eval_consistency(
         else:
             number_of_failures += 1
             evaluation_results[spec_name]["status"] = "Failure"
-    
-    print("Consistency evaluation completed")
-    print("Success rate: {:.2f}".format(number_of_successes / total_evaluated_specs))
-    print("Failure rate: {:.2f}".format(number_of_failures / total_evaluated_specs))
-    print("Unknown rate: {:.2f}".format(number_of_unknown / total_evaluated_specs))
+
     return number_of_successes / total_evaluated_specs, number_of_failures / total_evaluated_specs, evaluation_results
         
         

@@ -5,6 +5,9 @@ import os
 import docker
 import atexit
 from ..utils import execute_command, copy_to_container
+import FormalBench
+
+_LIB_DIR = os.path.dirname(os.path.abspath(FormalBench.__file__))
 
 def create_verifier(name: str, version: int = 21) -> "Verifier":
     """
@@ -201,10 +204,10 @@ class OpenJMLVerifierWithoutDocker(Verifier):
     
     def __init__(self, version=21) -> None:
         assert version in [21, 17], "OpenJML version must be either 21 or 17"
-        verifier_dir = os.path.abspath(".env/verifiers/openjml{}".format(version))
+        verifier_dir = os.path.abspath(os.path.join(_LIB_DIR, "../executables/verifiers/openjml{}".format(version)))
         if not os.path.exists(verifier_dir):
             os.makedirs(verifier_dir)
-        self.exec_path = os.path.abspath(f".env/verifiers/openjml{version}/openjml")
+        self.exec_path = os.path.abspath(f"{verifier_dir}/openjml")
         if not os.path.exists(self.exec_path):
             if version == 21:
                 print("Downloading OpenJML version 0.21.0-alpha-0")
@@ -253,7 +256,6 @@ class OpenJMLVerifierWithoutDocker(Verifier):
         elif output == "Timeout":
             return (-1, output)
         else:
-            print("Output: {}".format(output))
             if "Internal JML bug" in output:
                 return (-5, output)
             return (0, output)

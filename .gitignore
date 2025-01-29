@@ -1,3 +1,5 @@
 .env
 .pytest_cache
 tests/testcases/results/completeness
+FormalBench.egg-info
+executables

@@ -8,6 +8,10 @@ from ..utils import (
     copy_from_container
 )
 
+import FormalBench
+
+_LIB_DIR = os.path.dirname(os.path.abspath(FormalBench.__file__))
+
 def create_mutator(name: str) -> "MutantGenerator":
     """
     Create a code mutator instance
@@ -80,7 +84,7 @@ class MajorMutantGenerator(MutantGenerator):
         atexit.register(self.clean_up)
         
         self.executable_path = "/home/major/bin/major"
-        local_config_path = os.path.abspath("FormalBench/config/major.mml.bin")
+        local_config_path = os.path.abspath(os.path.join(_LIB_DIR, "config/major.mml.bin"))
         assert os.path.exists(
             local_config_path
         ), "MML file not found at: {}. Please re-download our package.".format(
@@ -124,14 +128,14 @@ class MajorMutantGenerator(MutantGenerator):
         print("Cleaning up the docker container")
         self.container.stop()
         self.container.remove()
-        if os.path.exists("FormalBench/config/major.mml.bin.tar"):
-            os.remove("FormalBench/config/major.mml.bin.tar")
+        if os.path.exists(os.path.abspath(os.path.join(_LIB_DIR, "config/major.mml.bin.tar"))):
+            os.remove(os.path.abspath(os.path.join(_LIB_DIR, "config/major.mml.bin.tar")))
 
 class MajorMutantGeneratorWithoutDocker(MutantGenerator):
 
     def __init__(self) -> None:
         super().__init__()
-        major_dir = os.path.abspath(".env/major-v3/")
+        major_dir = os.path.abspath(os.path.join(_LIB_DIR, "../executables/mutators/"))
         os.makedirs(major_dir, exist_ok=True)
         self.executable_path = os.path.abspath(f"{major_dir}/major/bin/major")
         if not os.path.exists(self.executable_path):
@@ -143,7 +147,7 @@ class MajorMutantGeneratorWithoutDocker(MutantGenerator):
         ), "Major executable not found at: {}. Please download Major v.3.0.1 and put into the mutators/ folder".format(
             self.executable_path)
         
-        self.config_path = os.path.abspath("FormalBench/config/major.mml.bin")
+        self.config_path = os.path.abspath(os.path.join(_LIB_DIR, "config/major.mml.bin"))
         
         assert os.path.exists(
             self.config_path
