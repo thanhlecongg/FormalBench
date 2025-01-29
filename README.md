@@ -1,5 +1,8 @@
 # FormalBench: A Comprehensive Benchmark for Formal Specification Inference
+
 [![Build and test](https://github.com/thanhlecongg/FormalBench/actions/workflows/build_and_test.yml/badge.svg)](https://github.com/thanhlecongg/FormalBench/actions/workflows/build_and_test.yml)
+[![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+[![Release](https://img.shields.io/badge/Release-InProgress-orange.svg)]()
 
 ## Prerequisites
 
