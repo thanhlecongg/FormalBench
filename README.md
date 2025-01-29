@@ -8,7 +8,12 @@
 
 FormalBench have two modes:
 - Docker mode, which requires the docker in your local computers
-- Non-Docker mode, which requires Ubuntu 20.04 
+- Non-Docker mode, which requires Ubuntu 20.04
+
+Versions:
+- Python 3.12
+- Pip 25.0
+- Java 11
 
 ## Installation
 
@@ -17,7 +22,7 @@ FormalBench have two modes:
 git clone https://github.com/thanhlecongg/FormalBench.git
 ```
 
-- Step 2: Create virtual environment with Python (default version of FormalBench is Python 3.8)
+- Step 2: Create virtual environment with Python (default version of FormalBench is Python 3.12)
 ```
 python3 -m venv .env
 . .env/bin/activate
@@ -106,4 +111,24 @@ print("Average coverage: ", avg_coverage)
 Average coverage:  1.0
 Cleaning up the docker container
 ```
+
+### Specification Inference
+
+You can use our built-in LLM-based specification inference tool to generate formal specification for a given Java code as follows:
+```python
+generator = SpecInfer(workflow="basic", model_name="deepseekv3", timeout=10)
+code = open("tests/testcases/code/AddLoop.java").read()
+class_name = "AddLoop"
+config = {
+        "configurable": {
+            "thread_id": str(uuid.uuid4()),
+        }
+}
+results = generator.generate(code, class_name, config)
+assert "spec" in results, "Specification should be generated"
+assert "messages" in results, "Messages should be generated"
+```
+
+Expected output is LLM's response and verification results  
+
 
