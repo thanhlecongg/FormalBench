@@ -1,5 +1,6 @@
 import os
 from FormalBench.evaluation import create_verifier
+from FormalBench.evaluation import create_mutator
 
 def test_create_verifier():
     assert create_verifier("OpenJML", 21)
@@ -44,4 +45,6 @@ def test_verifier():
     assert not os.path.exists("tests/testcases/Absolute_wrong.java.tar"), "Local tar file should be deleted"
     assert not os.path.exists("tests/testcases/Absolute.java.tar"), "Local tar file should be deleted"
     
-    
+def test_mutation_analysis():
+    create_mutator("Major")
+    create_mutator("MajorWithoutDocker")

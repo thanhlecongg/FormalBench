@@ -3,3 +3,9 @@ from .tools.verifier import (
     OpenJMLVerifier,
     OpenJMLVerifierWithoutDocker
 )
+
+from .tools.mutation_analysis import (
+    create_mutator,
+    MajorMutantGenerator,
+    MajorMutantGeneratorWithoutDocker
+)

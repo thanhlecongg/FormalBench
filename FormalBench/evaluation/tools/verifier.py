@@ -4,10 +4,11 @@ import re
 import os
 import docker
 import atexit
-from FormalBench.evaluation.utils import execute_command, copy_to_container
+from ..utils import execute_command, copy_to_container
 
 def create_verifier(name: str, version: int = 21) -> "Verifier":
-    """_summary_
+    """
+    Create a verifier instance
 
     Args:
         name (str): Name of the verifier. Currently only OpenJML is supported
@@ -31,7 +32,8 @@ class Verifier(ABC):
     
     @abstractmethod
     def verify(self, path: str, timeout: int, basedir: str) -> Tuple[int, str]:
-        """_summary_
+        """
+        Verify a source code file annotated formal specifciation using the verifier
 
         Args:
             path (str): path to the file to be verified. The path should be an .java file
@@ -45,7 +47,8 @@ class Verifier(ABC):
         
     @abstractmethod
     def extract_output(self, output: str) -> Tuple[int, str]:
-        """_summary_
+        """
+        Extract the number of errors from the output of the verifier
 
         Args:
             output (str): output message from the verifier
@@ -81,10 +84,12 @@ class OpenJMLVerifier(Verifier):
         atexit.register(self.clean_up)
         self.openjml_version = version
 
-    def check(self,
-               path: str,
-               basedir: str = "",
-               timeout: int = 1800) -> Tuple[int, str]:
+    def check(
+            self,
+            path: str,
+            basedir: str = "",
+            timeout: int = 1800
+        ) -> Tuple[int, str]:
 
         path = os.path.abspath(path)
         print("Path: {}".format(path))
@@ -117,10 +122,12 @@ class OpenJMLVerifier(Verifier):
             os.remove(tar_file)
         return self.extract_output(output)
     
-    def verify(self,
-               path: str,
-               timeout: int = 1800,
-               basedir: str = "") -> Tuple[int, str]:
+    def verify(
+            self,
+            path: str,
+            timeout: int = 1800,
+            basedir: str = ""
+        ) -> Tuple[int, str]:
         
         path = os.path.abspath(path)
         print("Path: {}".format(path))
@@ -186,6 +193,7 @@ class OpenJMLVerifier(Verifier):
         self.container.remove()
             
 class OpenJMLVerifierWithoutDocker(Verifier):
+    
     def __init__(self, version=21) -> None:
         assert version in [21, 17], "OpenJML version must be either 21 or 17"
         verifier_dir = os.path.abspath(".env/verifiers/openjml{}".format(version))
@@ -204,7 +212,13 @@ class OpenJMLVerifierWithoutDocker(Verifier):
         assert os.path.exists(self.exec_path), "OpenJML executable not found at: {}. Please download OpenJML and put into the verifier/openjml/ folder".format(self.exec_path)
         print("OpenJML executable path: {}".format(self.exec_path))
     
-    def verify(self, path: str, timeout: int = 1800, basedir=None) -> Tuple[int, str]:
+    def verify(
+            self, 
+            path: str, 
+            timeout: int = 1800, 
+            basedir=None
+        ) -> Tuple[int, str]:
+        
         abs_path = os.path.abspath(path)
         command = "{} --esc --quiet --prover=cvc4 {}".format(self.exec_path, abs_path)
         print("Executing command: {}".format(command))
