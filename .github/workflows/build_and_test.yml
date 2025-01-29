@@ -25,7 +25,7 @@ jobs:
       run: |
         python -m venv .env
         . .env/bin/activate
-        python -m pip install pip==20.0.2
+        python -m pip install pip==25.0.0
         pip3 install -r requirements.txt
 
     - name: Test

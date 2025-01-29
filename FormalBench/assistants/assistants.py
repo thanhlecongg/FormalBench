@@ -4,7 +4,6 @@ from langchain_openai import ChatOpenAI
 from langchain_anthropic import ChatAnthropic
 from abc import ABC
 from .state import State
-from .config import OPENAI_MODEL
 import re
 import json
 from langchain_core.messages.human import HumanMessage
