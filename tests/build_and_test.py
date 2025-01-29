@@ -1,7 +1,6 @@
 import os
-from FormalBench.evaluation import create_verifier
-from FormalBench.evaluation import create_mutator
-from FormalBench.evaluation import eval_consistency
+from FormalBench.evaluation import create_verifier, create_mutator, eval_consistency, eval_completeness
+
 def test_create_verifier():
     assert create_verifier("OpenJML", 21)
     assert create_verifier("OpenJML", 17)
@@ -72,5 +71,23 @@ def test_consistency():
         eval_consistency("", "", language="java", verifier_name="Unknown")
     except AssertionError as e:
         assert str(e) == "Only OpenJML is supported for Java programs"
+    except:
+        assert False
+        
+def test_completeness():
+    avg_coverage, coverage_results = eval_completeness("tests/testcases/results/specs", "tests/testcases/results/completeness", timeout=20)
+    assert avg_coverage == 1.0, "Average coverage should be 1.0"
+    
+    try:
+        eval_completeness("tests/testcases/results/specs1", "tests/testcases/results/completeness")
+    except AssertionError as e:
+        assert str(e) == "Data directory not found: tests/testcases/results/specs1"
+    except:
+        assert False
+    
+    try:
+        eval_completeness("tests/testcases/results/specs", "tests/testcases/results/completeness", language="python")
+    except ValueError as e:
+        assert str(e) == "Unsupported language: python. Please select from ['java']"
     except:
         assert False
