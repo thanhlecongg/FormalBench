@@ -31,7 +31,12 @@ class Verifier(ABC):
         pass
     
     @abstractmethod
-    def verify(self, path: str, timeout: int, basedir: str) -> Tuple[int, str]:
+    def verify(
+        self, 
+        path: str, 
+        timeout: int = 1800, 
+        basedir: str = ""
+    ) -> Tuple[int, str]:
         """
         Verify a source code file annotated formal specifciation using the verifier
 
@@ -80,7 +85,7 @@ class OpenJMLVerifier(Verifier):
             )
 
         self.tmp_dir = os.path.join("/tmp/")
-        self.container.status == "created", "Container failed to start"
+        assert self.container.status == "created", "Container failed to start"
         atexit.register(self.clean_up)
         self.openjml_version = version
 

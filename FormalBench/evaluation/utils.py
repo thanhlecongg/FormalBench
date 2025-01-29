@@ -36,35 +36,6 @@ def execute_command(command, timeout=None):
     except subprocess.CalledProcessError as e:
         return e.output.decode("utf-8")
 
-
-def extract_err_type(err_info):
-    prompt_list = []
-    keyword_dict = {
-        "DivideByZero": "divide_by_zero",
-        "visibility": "private_visibility",
-        "NegativeIndex": "negative_index",
-        "TooLargeIndex": "too_large_index",
-        "ArithmeticOperationRange negation": "overflow_negation",
-        "overflow sum": "overflow_sum",
-        "overflow difference": "overflow_sub",
-        "overflow multiply": "overflow_mul",
-        "overflow divide": "overflow_div",
-        "underflow sum": "underflow_sum",
-        "underflow difference": "underflow_sub",
-        "underflow multiply": "underflow_mul",
-        "underflow divide": "underflow_div",
-    }
-    for key in keyword_dict:
-        keyword_list = key.split(' ')
-        flag_all_in = True
-        for keyword in keyword_list:
-            if err_info.find(keyword) == -1:
-                flag_all_in = False
-                break
-        if flag_all_in:
-            prompt_list.append(keyword_dict[key])
-    return prompt_list
-
 def copy_to_container(container, src: str, dest: str) -> None:
     src_dir = os.path.dirname(src)
     print("src_dir: {}".format(src_dir))

@@ -33,7 +33,7 @@ def create_mutator(name: str) -> "MutantGenerator":
 
 class MutantGenerator(ABC):
 
-    def __init__(self, home_dir, image_name, environment=None) -> None:
+    def __init__(self) -> None:
         """
         Create a new code mutator instance
 
@@ -42,23 +42,8 @@ class MutantGenerator(ABC):
             image_name (_type_): Name of the docker image
             environment (_type_, optional): Environment variables for the container. Defaults to None.
         """
-        
-        self.home_dir = home_dir
-        self.image_name = image_name
-        self.client = docker.from_env()
-        self.container = self.client.containers.run(
-            self.image_name,
-            "/bin/bash",
-            detach=True,
-            tty=True,
-            volumes={os.getcwd(): {
-                         'bind': self.home_dir,
-                         'mode': 'rw'
-                     }},
-            environment=environment)
-        assert self.container.status == "created", "Container failed to start"
-        atexit.register(self.clean_up)
-
+        pass
+    
     @abstractmethod
     def generate_mutants(self, path: str, out_dir: str):
         """
@@ -70,25 +55,30 @@ class MutantGenerator(ABC):
         """
         pass
 
-    def clean_up(self):
-        """
-        Clean up the docker container and temporary files
-        """
-        
-        print("Cleaning up the docker container")
-        self.container.stop()
-        self.container.remove()
-        if os.path.exists("FormalBench/config/major.mml.bin.tar"):
-            os.remove("FormalBench/config/major.mml.bin.tar")
-
-
 class MajorMutantGenerator(MutantGenerator):
 
     def __init__(self) -> None:
         self.tmp_dir = os.path.join("/tmp/")
         self.config_path = os.path.join(self.tmp_dir, "major.mml.bin")
-        super().__init__(home_dir="/home/specInfer",
-                         image_name="thanhlecong/major:latest")
+        
+        self.home_dir = "/home/specInfer"
+        self.image_name = "thanhlecong/major:latest"
+        self.client = docker.from_env()
+        self.container = self.client.containers.run(
+            self.image_name,
+            "/bin/bash",
+            detach=True,
+            tty=True,
+            volumes={os.getcwd(): {
+                         'bind': self.home_dir,
+                         'mode': 'rw'
+                     }},
+            environment=None
+        )
+        
+        assert self.container.status == "created", "Container failed to start"
+        atexit.register(self.clean_up)
+        
         self.executable_path = "/home/major/bin/major"
         local_config_path = os.path.abspath("FormalBench/config/major.mml.bin")
         assert os.path.exists(
@@ -126,7 +116,18 @@ class MajorMutantGenerator(MutantGenerator):
         
         self.container.exec_run("rm -rf /mutants")
     
-class MajorMutantGeneratorWithoutDocker():
+    def clean_up(self):
+        """
+        Clean up the docker container and temporary files
+        """
+        
+        print("Cleaning up the docker container")
+        self.container.stop()
+        self.container.remove()
+        if os.path.exists("FormalBench/config/major.mml.bin.tar"):
+            os.remove("FormalBench/config/major.mml.bin.tar")
+
+class MajorMutantGeneratorWithoutDocker(MutantGenerator):
 
     def __init__(self) -> None:
         super().__init__()
