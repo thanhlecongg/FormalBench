@@ -9,3 +9,5 @@ from .tools.mutation_analysis import (
     MajorMutantGenerator,
     MajorMutantGeneratorWithoutDocker
 )
+
+from .metrics.consistency import eval_consistency
