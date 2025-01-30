@@ -7,8 +7,6 @@ _LIB_DIR = os.path.dirname(FormalBench.__file__)
 load_dotenv(dotenv_path=os.path.join(_LIB_DIR, "config/.env"))
 
 os.environ["OPENAI_API_KEY"] = os.getenv("OPENAI_API_KEY")
-OPENAI_MODEL = os.getenv("OPENAI_MODEL")
-
 os.environ["LANGSMITH_TRACING"] = "false"
 os.environ["LANGSMITH_ENDPOINT"] = os.getenv("LANGSMITH_ENDPOINT")
 os.environ["LANGSMITH_API_KEY"] = os.getenv("LANGSMITH_API_KEY")

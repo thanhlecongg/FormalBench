@@ -33,6 +33,20 @@ python3 -m venv .env
 pip3 install -e .[default]
 ```
 
+## Supported Features
+
+- Language: Currently, we only support Java with its specification language, JML
+- Verification tools: Currently, we only provide wrapper to [OpenJML](https://www.openjml.org/) tool version 17 & 21 to verify Java programs annotated by JML
+- Evaluation metrics:
+    - Consistency metrics: Verification success rate & failure rate
+    - Completeness metrics: We implemented our completeness metric based mutation analysis of [Major framework](https://mutation-testing.org/) and [OpenJML verifier](https://www.openjml.org/).
+- LLM-based specification inference:
+    - workflow:
+        - basic: Generate spec and verify it using verfication tool
+        - only_gen: Only generate spec
+    - prompt_type: zero shot, few shot, least-to-most, chain-of-thought
+    - LLMs: DeepSeekV3, GPT-4o, GPT3.5, Claude3.5-Sonnet, CodeQwen2.5 (QwenCoder-32B), CodeQwen1.5-7B, CodeLLama-34B, DeepSeekV2-32B
+
 ## Basic Usage
 
 ### Verification Tool
@@ -114,8 +128,13 @@ Cleaning up the docker container
 
 ### Specification Inference
 
+#### SpecInfer
+
 You can use our built-in LLM-based specification inference tool to generate formal specification for a given Java code as follows:
 ```python
+from FormalBench.assistants.inference import SpecInfer
+import uuid
+
 generator = SpecInfer(workflow="basic", model_name="deepseekv3", timeout=10)
 code = open("tests/testcases/code/AddLoop.java").read()
 class_name = "AddLoop"
@@ -131,4 +150,34 @@ assert "messages" in results, "Messages should be generated"
 
 Expected output is LLM's response and verification results  
 
+#### SpecFixer
 
+If verification tool fails to verify the generated specification, you can use our built-in specification fixer to repair it as follows:
+
+```python
+from FormalBench.assistants.fixer import SpecFixer
+import uuid
+import json
+
+generator = SpecFixer(workflow="basic", model_name="deepseekv3", timeout=10)
+
+path = "tests/testcases/results/specs/AddDictToTuple.java"    
+class_name = "AddDictToTuple"
+
+with open(path, "r") as f:
+    spec = f.read()
+        
+with open("tests/testcases/results/analysis_results/AddDictToTuple.json", "r") as f:
+    analysis_results = json.load(f)
+
+config = {
+        "configurable": {
+            "thread_id": str(uuid.uuid4()),
+        }
+}
+
+last_results = analysis_results["analysis_results"]
+generator.repair(spec, last_results, class_name, config)
+```
+
+Expected output is LLM's response and new verification results  

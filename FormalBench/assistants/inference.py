@@ -10,7 +10,7 @@ from .utils import _print_event
 import torch
 import gc
 from .example import *
-
+from . import config
 import re
 
 def contains_jml_annotations(java_code):

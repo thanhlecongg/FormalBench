@@ -38,6 +38,7 @@ def _print_event(event: dict, _printed: set, max_length=1500):
 
     analysis_results = event.get("analysis_results")
     if analysis_results:
+        print("Iteration: ", n_iters)
         print(
             "================================ Analysis Results ================================="
         )
