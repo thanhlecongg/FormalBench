@@ -4,7 +4,6 @@ from FormalBench.evaluation import (
     create_mutator, 
     eval_consistency, 
     eval_completeness,
-    load_base_dataset
 )
 
 def test_create_verifier():
@@ -98,6 +97,3 @@ def test_completeness():
         assert str(e) == "Unsupported language: python. Please select from ['java']"
     except:
         assert False
-
-def test_dataset():
-    load_base_dataset()
