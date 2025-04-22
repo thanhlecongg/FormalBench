@@ -13,3 +13,4 @@ langchain_openai==0.3.2
 langchain_huggingface==0.1.2
 python-dotenv==1.0.1
 matplotlib==3.10.0
+datasets==3.2.0

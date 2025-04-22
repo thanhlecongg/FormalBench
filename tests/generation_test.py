@@ -48,3 +48,4 @@ def test_fixer():
     
     last_results = analysis_results["analysis_results"]
     generator.repair(spec, last_results, class_name, config)
+
