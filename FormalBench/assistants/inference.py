@@ -66,15 +66,8 @@ class SpecInfer():
                 self.verifier = create_verifier("OpenJML")
             else:
                 self.verifier = create_verifier("OpenJMLWithoutDocker")
-            if prompt_type == "intent":
-                self.gen_sys_mes = (
-                    "You are an expert in Java Modeling Language (JML). "
-                    "You will be provided with Java code snippets and their task descriptions. "
-                    "Your task is to generate JML specifications for the given Java code. "
-                    "The specifications should be written as annotations within the Java code and must be compatible with the OpenJML tool for verification. "
-                    "Ensure the specifications include detailed preconditions, postconditions, necessary loop invariants, invariants, assertions, and any relevant assumptions."
-                )
-            elif prompt_type == "two_shot":
+            
+            if prompt_type == "two_shot":
                 self.gen_sys_mes = (
                     "You are an expert in Java Modeling Language (JML). "
                     "You will be provided with Java code snippets. "
@@ -93,17 +86,47 @@ class SpecInfer():
                     "Your task is to generate JML specifications for the given Java code. "
                     "The specifications should be written as annotations within the Java code and must be compatible with the OpenJML tool for verification. "
                     "Ensure the specifications include detailed preconditions, postconditions, necessary loop invariants, invariants, assertions, and any relevant assumptions. "
+                    
                 )
                 
-            self.prompt_type = prompt_type
             self.language = "java"
             self.spec_language = "JML"
             self.gen_query = "Please generate JML specifications for the provided Java code." 
+        elif language == "c":
+            assert use_docker, "FramaC without docker is not implemented yet. Please use FramaC with docker."
+            self.verifier = create_verifier("FramaC")
+            
+            if prompt_type == "two_shot":
+                self.gen_sys_mes = (
+                    "You are an expert in Frama-C. "
+                    "You will be provided with C code snippets. "
+                    "Your task is to generate ACSL specifications for the given C code. "
+                    "The specifications should be written as annotations within the C code and must be compatible with the Frama-C tool for verification. "
+                    "Ensure the specifications include detailed preconditions, postconditions, necessary loop invariants, invariants, assertions, and any relevant assumptions."
+                    "Please also adhere to the following syntax guidelines for ACSL:\n"
+                    "Specification language text is placed inside special C comments; its lexical structure mostly follows that of ANSI/ISO C. A few differences should be noted."
+                    "- The at sign (@) is equivalent to a space character, except where it indicates the beginning of an ACSL annotation."
+                    "- Identifiers may start with the backslash character (\)."
+                    "- Comments may be put inside ACSL annotations. They use the C++ format, i.e. begin with // and extend to the end of current line. Comments beginning with /* may not be nested within ACSL comments. Nested annotations beginning with //@ are parsed as if the //@ is replaced by white space. An ACSL annotation that contains only white space (after pre-processing) is ignored."
+                    "- ACSL uses some grammar elements from C, such as literals, type expressions, statements and declarations. Most of these are identified as such by C- prefixes in the figures laying out the grammar"
+                )
+            else:  
+                self.gen_sys_mes = (
+                    "You are an expert in Frama-C. "
+                    "You will be provided with C code snippets. "
+                    "Your task is to generate ACSL specifications for the given C code. "
+                    "The specifications should be written as annotations within the C code and must be compatible with the Frama-C tool for verification. "
+                    "Ensure the specifications include detailed preconditions, postconditions, necessary loop invariants, invariants, assertions, and any relevant assumptions."
+                )
+            self.language = "c"
+            self.spec_language = "ACSL"
+            self.gen_query = "Please generate JML specifications for the provided C code." 
+        
         else:
             raise ValueError(
-                f"Currently, we only Java language is supported. Please select 'java' as the language."
+                f"Currently, we only Java and C language are supported. Please select 'java' or 'c' as the language."
             )
-        
+        self.prompt_type = prompt_type
         self.workflow_name = workflow
         
         if workflow == "basic":
@@ -156,6 +179,8 @@ class SpecInfer():
         language = state["lang"]
         tmp_path = os.path.join(self.tmp_dir, f"{class_name}.{language}")
         with open(tmp_path, "w") as f:
+            if self.language == "c" and "#include <limits.h>" not in curr_spec:
+                f.write("#include <limits.h>\n")
             f.write(curr_spec)
         
         is_valid = contains_jml_annotations(curr_spec)

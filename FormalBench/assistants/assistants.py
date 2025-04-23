@@ -352,17 +352,10 @@ class FixingAssistant(Assistant):
             ])
 
        
-    def __init__(self, model_name: str, language: str = "java", prompt_type: str = "SpecGen"):
+    def __init__(self, model_name: str, language: str = "java"):
         self.llm = create_llm(model_name)
         self.language = language
         self.prompt_template = self._create_prompt(model_name)
-
-    def _augment_error_info(self, state):
-        if self.prompt_type == "SpecGen":
-            curr_error = state["curr_error"]
-            assert curr_error is not None, "No error to fix"
-        
-        return state        
         
     def __call__(self, state: State, config: RunnableConfig = None):
         n_errors, output, last_spec = state["analysis_results"][-1]
