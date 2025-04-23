@@ -13,7 +13,7 @@ from .example import *
 from . import config
 import re
 
-def contains_jml_annotations(java_code):
+def contains_annotations(java_code):
     # Split the code into lines
     lines = java_code.splitlines()
     
@@ -183,7 +183,7 @@ class SpecInfer():
                 f.write("#include <limits.h>\n")
             f.write(curr_spec)
         
-        is_valid = contains_jml_annotations(curr_spec)
+        is_valid = contains_annotations(curr_spec)
         if not is_valid:
             print("Invalid JML annotations")
             new_state["analysis_results"].append((-4, "Invalid JML annotations", curr_spec))
