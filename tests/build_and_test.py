@@ -6,7 +6,7 @@ from FormalBench.evaluation import (
     eval_completeness,
 )
 
-def test_create_verifier():
+def test_create_java_verifier():
     assert create_verifier("OpenJML", 21)
     assert create_verifier("OpenJML", 17)
     assert create_verifier("OpenJMLWithoutDocker", 17)
@@ -32,7 +32,16 @@ def test_create_verifier():
     except:
         assert False
 
-def test_verifier():
+def test_create_c_verifier():
+    assert create_verifier("FramaC")
+    try:
+        create_verifier("FramaCWithoutDocker")
+    except NotImplementedError as e:
+        assert str(e) == "FramaC without docker is not implemented yet. Please use FramaC with docker."
+    except:
+        assert False
+        
+def test_java_verifier():
     verifier = create_verifier("OpenJML", 21)
     n_errors, output = verifier.verify("tests/testcases/specs/Absolute.java")
     assert n_errors == 0, "No errors should be found"
@@ -48,6 +57,24 @@ def test_verifier():
     
     assert not os.path.exists("tests/testcases/specs/Absolute_wrong.java.tar"), "Local tar file should be deleted"
     assert not os.path.exists("tests/testcases/specs/Absolute.java.tar"), "Local tar file should be deleted"
+
+def test_c_verifier():
+    verifier = create_verifier("FramaC")
+    n_errors, output = verifier.verify("tests/testcases/specs/abs.c")
+    print(n_errors, output)
+    assert n_errors == 0, "No errors should be found"
+    
+    n_errors, output = verifier.verify("tests/testcases/specs/abs_wrong.c")
+    assert n_errors > 0, "Errors should be found"
+    assert len(output) > 0, "Output should be found"
+    
+    n_errors, output = verifier.verify("tests/testcases/specs/abs_invalid.c")
+    print(n_errors, output)
+    assert n_errors == -5, "Invalid specification should return -5"
+    
+    assert not os.path.exists("tests/testcases/specs/abs.c.tar"), "Local tar file should be deleted"
+    assert not os.path.exists("tests/testcases/specs/abs_invalid.c.tar"), "Local tar file should be deleted"
+    assert not os.path.exists("tests/testcases/specs/abs_wrong.c.tar"), "Local tar file should be deleted"
     
 def test_mutation_analysis():
     create_mutator("Major")
