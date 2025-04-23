@@ -2,7 +2,7 @@
 
 [![Build and test](https://github.com/thanhlecongg/FormalBench/actions/workflows/build_and_test.yml/badge.svg)](https://github.com/thanhlecongg/FormalBench/actions/workflows/build_and_test.yml)
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
-[![Release](https://img.shields.io/badge/Release-0.1.0-orange.svg)](https://github.com/thanhlecongg/FormalBench/tree/b2a810cdc8d82bec85a58ad525af39345bd10c93)
+[![Release](https://img.shields.io/badge/Release-0.1.0-orange.svg)](https://github.com/thanhlecongg/FormalBench/tree/e15a061b237e0fd49cc10628fca79f47a653ddf1)
 [![Dataset](https://img.shields.io/badge/Dataset-v1.0-yellow.svg)](https://huggingface.co/datasets/FormalBench/FormalBench/tree/main)
 
 
