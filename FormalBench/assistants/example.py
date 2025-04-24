@@ -1,4 +1,5 @@
-EXAMPLE_CODE1 = """
+class JavaExample:
+  EXAMPLE_CODE1 = """
 public class SumMax {
 
     void sumMax(int[] a) {
@@ -14,7 +15,7 @@ public class SumMax {
 }
 """
 
-EXAMPLE_SPEC1 = """
+  EXAMPLE_SPEC1 = """
 ```
 public class SumMax {
 
@@ -37,7 +38,7 @@ public class SumMax {
 ```
 """
 
-EXAMPLE_CODE2 = """
+  EXAMPLE_CODE2 = """
 
 public class Abs {
 	public int Abs(int num) {
@@ -50,7 +51,7 @@ public class Abs {
 }
 """
 
-EXAMPLE_SPEC2 = """
+  EXAMPLE_SPEC2 = """
 ```
 public class Abs {
 	//@ requires num != Integer.MIN_VALUE;
@@ -66,7 +67,7 @@ public class Abs {
 ```
 """
 
-EXAMPLE_LTM_RESPONSE2 = """
+  EXAMPLE_LTM_RESPONSE2 = """
 Let's break down the problem step by step and generate the JML specifications for the `Abs` class.
 
 ---
@@ -109,7 +110,7 @@ public class Abs {
 ```
 """
 
-EXAMPLE_CODE3 = """
+  EXAMPLE_CODE3 = """
 public class BinarySearch {
 
     public static int search(int[] sortedArray, int value) {
@@ -133,7 +134,7 @@ public class BinarySearch {
     }
 }
 """
-EXAMPLE_SPEC3 = """
+  EXAMPLE_SPEC3 = """
 public class BinarySearch {
     
     //@ requires sortedArray != null && 0 < sortedArray.length < Integer.MAX_VALUE;
@@ -170,7 +171,7 @@ public class BinarySearch {
 }
 """
 
-EXAMPLE_LTM_RESPONSE3 = """
+  EXAMPLE_LTM_RESPONSE3 = """
 Let's break down the problem step by step and generate the JML specifications for the `BinarySearch` class.
 
 ---

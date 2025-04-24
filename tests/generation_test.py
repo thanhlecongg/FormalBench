@@ -27,6 +27,19 @@ def test_java_generator():
     results = generator.generate(code, class_name, config)
     assert "spec" in results, "Specification should be generated"
     assert "messages" in results, "Messages should be generated"
+    
+        
+    generator = SpecInfer(workflow="only_gen", model_name="gpt-3.5-turbo", prompt_type="two_shot")
+    code = open("tests/testcases/code/AddLoop.java").read()
+    class_name = "AddLoop"
+    config = {
+            "configurable": {
+                "thread_id": str(uuid.uuid4()),
+            }
+    }
+    results = generator.generate(code, class_name, config)
+    assert "spec" in results, "Specification should be generated"
+    assert "messages" in results, "Messages should be generated"
 
 def test_c_generator():
     generator = SpecInfer(workflow="only_gen", model_name="gpt-3.5-turbo", language="c")
@@ -52,9 +65,7 @@ def test_c_generator():
     results = generator.generate(code, class_name, config)
     assert "spec" in results, "Specification should be generated"
     assert "messages" in results, "Messages should be generated"
-    
-    print("Results: ", results)
-    
+        
 def test_fixer():
     generator = SpecFixer(workflow="basic", model_name="gpt-3.5-turbo", timeout=10)
 

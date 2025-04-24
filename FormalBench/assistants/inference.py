@@ -92,6 +92,7 @@ class SpecInfer():
             self.language = "java"
             self.spec_language = "JML"
             self.gen_query = "Please generate JML specifications for the provided Java code." 
+            self.example_set = JavaExample
         elif language == "c":
             assert use_docker, "FramaC without docker is not implemented yet. Please use FramaC with docker."
             self.verifier = create_verifier("FramaC")
@@ -241,15 +242,15 @@ class SpecInfer():
     def generate(self, code: str, class_name: str, config: dict, verbose=True):
         print(f"Generating specifications for {class_name} ...")
         if self.prompt_type in ["fs_ltm"]:
-            example_code1 = EXAMPLE_CODE2
-            example_code2 = EXAMPLE_CODE3
-            example_spec1 = EXAMPLE_LTM_RESPONSE2
-            example_spec2 = EXAMPLE_LTM_RESPONSE3
+            example_code1 = self.example_set.EXAMPLE_CODE2
+            example_code2 = self.example_set.EXAMPLE_CODE3
+            example_spec1 = self.example_set.EXAMPLE_LTM_RESPONSE2
+            example_spec2 = self.example_set.EXAMPLE_LTM_RESPONSE3
         else:
-            example_code1 = EXAMPLE_CODE1
-            example_code2 = EXAMPLE_CODE2
-            example_spec1 = EXAMPLE_SPEC1
-            example_spec2 = EXAMPLE_SPEC2
+            example_code1 = self.example_set.EXAMPLE_CODE1
+            example_code2 = self.example_set.EXAMPLE_CODE2
+            example_spec1 = self.example_set.EXAMPLE_SPEC1
+            example_spec2 = self.example_set.EXAMPLE_SPEC2
         
         query = {
             "gen_sys_mes": self.gen_sys_mes,
