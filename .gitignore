@@ -5,4 +5,6 @@ FormalBench.egg-info
 executables
 tmp/*
 FormalBench/config/.env
-test.py
+test*.py
+tests/testcases/specs/Demo.java
+tests/testcases/specs/demo.c

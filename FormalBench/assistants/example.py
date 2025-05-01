@@ -244,6 +244,353 @@ public class BinarySearch {
 ```
 """
 
+
+class CExample:
+  EXAMPLE_CODE1 = """
+int abs(int num) {
+    if (num < 0)
+      return -num;
+    else
+      return num;
+}
+"""
+
+  EXAMPLE_SPEC1 = """
+```
+#include <limits.h>
+
+/*@
+  requires num != -INT_MAX; 
+  ensures \result == ((num < 0) ? -num : num);
+*/
+int abs(int num) {
+    if (num < 0)
+      return -num;
+    else
+      return num;
+}
+```
+"""
+
+  EXAMPLE_CODE2 = """
+int extended_Euclid(int x, int y, int *p, int *q) {
+    int a = 1, b = 0, c = 0, d = 1;
+    while (y > 0) {
+        int r = x % y;
+        int q = x / y;
+        int ta = a, tb = b;
+        x = y; y = r;
+        a = c; b = d;
+        c = ta - c * q;
+        d = tb - d * q;
+    }
+    *p = a; *q = b;
+    return x;
+}
+"""
+
+  EXAMPLE_SPEC2 = """
+```
+/*@ requires x >= 0 && y >= 0;
+@ behavior bezoutProperty:
+@   ensures (*p)*x + (*q)*y == \result;
+@*/
+int extended_Euclid(int x, int y, int *p, int *q) {
+    int a = 1, b = 0, c = 0, d = 1;
+    /*@ loop invariant x >= 0 && y >= 0 ;
+        @ for bezoutProperty: loop invariant
+        @   a*\at(x,Pre) + b*\at(y,Pre) == x &&
+        @   c*\at(x,Pre) + d*\at(y,Pre) == y ;
+        @ loop variant y;
+        @*/
+    while (y > 0) {
+        int r = x % y;
+        int q = x / y;
+        int ta = a, tb = b;
+        x = y; y = r;
+        a = c; b = d;
+        c = ta - c * q;
+        d = tb - d * q;
+    }
+    *p = a; *q = b;
+    return x;
+}
+```
+"""
+
+  EXAMPLE_LTM_RESPONSE2 = """
+Let's break down the problem step by step and generate the ACSL specifications for the `extended_euclid` method.
+
+---
+
+## 1. **Mathematical Context**
+
+This function implements the **extended Euclidean algorithm**, which computes the **greatest common divisor (GCD)** of two non-negative integers `x` and `y`, along with two integers `p` and `q` such that:
+
+\[
+p \cdot x + q \cdot y = \gcd(x, y)
+\]
+
+This property is known as **Bézout’s identity**, and the integers `p` and `q` are referred to as **Bézout coefficients**.
+
+---
+
+## 2. **Weakest Preconditions**
+
+The following preconditions are necessary for the function to operate correctly:
+
+- `x >= 0 && y >= 0`: Ensures that the inputs lie within the domain of natural numbers.
+- These constraints ensure the `%` and `/` operators are mathematically valid and avoid undefined behavior.
+
+---
+
+## 3. **Strongest Postconditions**
+
+The following postconditions are necessary for the function to operate correctly:
+
+- The return value is `g = gcd(x, y)`.
+- The values stored at memory locations `*p` and `*q` are such that:
+
+\[
+(*p) \cdot x + (*q) \cdot y = \gcd(x, y)
+\]
+
+This condition is formalized under the named behavior **`bezoutProperty`**, allowing modular verification.
+
+---
+
+## 4. **Loop Annotations**
+
+### Loop Invariants
+
+```c
+loop invariant x >= 0 && y >= 0;
+for bezoutProperty:
+  loop invariant 
+    a*\at(x,Pre) + b*\at(y,Pre) == x &&
+    c*\at(x,Pre) + d*\at(y,Pre) == y;
+```
+
+- The first invariant preserves the non-negativity of `x` and `y` throughout execution.
+- The Bézout-specific invariants track the evolution of the coefficients:
+  - `a*x₀ + b*y₀ = x`
+  - `c*x₀ + d*y₀ = y`
+  - Here, `x₀` and `y₀` denote the initial values of `x` and `y` using `\at(..., Pre)`.
+
+This allows the loop to iteratively maintain the correctness of the linear combination during each Euclidean division step.
+
+### Loop Variant (Ranking Function)
+
+```c
+loop variant y;
+```
+
+This ranking function guarantees that `y` decreases with each iteration (since `r = x % y`), and thus the loop will eventually terminate.
+
+---
+
+## 5. **Correctness Guarantee**
+
+Upon termination of the loop:
+
+- `y == 0`, implying that `x` now holds the **GCD** of the original `x` and `y` values.
+- The loop invariants ensure that `a` and `b` satisfy:
+
+\[
+a \cdot x₀ + b \cdot y₀ = \gcd(x₀, y₀)
+\]
+
+- Finally, assigning `*p = a; *q = b;` and returning `x` completes the computation of Bézout’s coefficients and the GCD.
+
+---
+
+### SPECIFICATION
+
+```c
+/*@ 
+  requires x >= 0 && y >= 0;
+  behavior bezoutProperty:
+    ensures (*p)*x + (*q)*y == \result;
+@*/
+int extended_Euclid(int x, int y, int *p, int *q) {
+    int a = 1, b = 0, c = 0, d = 1;
+    /*@ 
+      loop invariant x >= 0 && y >= 0;
+      for bezoutProperty:
+        loop invariant 
+          a*\at(x,Pre) + b*\at(y,Pre) == x &&
+          c*\at(x,Pre) + d*\at(y,Pre) == y;
+      loop variant y;
+    @*/
+    while (y > 0) {
+        int r = x % y;
+        int q = x / y;
+        int ta = a, tb = b;
+        x = y; y = r;
+        a = c; b = d;
+        c = ta - c * q;
+        d = tb - d * q;
+    }
+    *p = a;
+    *q = b;
+    return x;
+}
+```
+"""
+
+  EXAMPLE_CODE3 = """
+int binary_search(const int* sortedArray, int length, int value) {
+    if (value < sortedArray[0]) return -1;
+    if (value > sortedArray[length - 1]) return -1;
+
+    int lo = 0;
+    int hi = length - 1;
+
+    while (lo <= hi) {
+        int mid = lo + (hi - lo) / 2;
+        if (sortedArray[mid] == value) {
+            return mid;
+        } else if (sortedArray[mid] < value) {
+            lo = mid + 1;
+        } else {
+            hi = mid - 1;
+        }
+    }
+
+    return -1;
+}
+"""
+  EXAMPLE_SPEC3 = """
+#include <limits.h>
+
+/*@
+  requires sortedArray != \null;
+  requires 0 < length < INT_MAX;
+  requires \forall integer i; 0 <= i < length ==> 
+             \forall integer j; i < j < length ==> sortedArray[i] <= sortedArray[j];
+
+  // ghost variable for specification: whether the value is in the array
+  assigns \nothing;
+  ensures (\exists integer i; 0 <= i < length && sortedArray[i] == value) 
+           <==> (0 <= \result < length);
+  ensures !(\exists integer i; 0 <= i < length && sortedArray[i] == value) 
+           <==> (\result == -1);
+*/
+int binary_search(const int* sortedArray, int length, int value) {
+    if (value < sortedArray[0]) return -1;
+    if (value > sortedArray[length - 1]) return -1;
+
+    int lo = 0;
+    int hi = length - 1;
+
+    /*@
+      loop invariant 0 <= lo <= hi + 1 && hi < length;
+      loop invariant \exists integer i; 0 <= i < length ==> 
+                       (sortedArray[i] == value) ==> (lo <= i <= hi);
+      loop invariant \forall integer i; 0 <= i < lo ==> sortedArray[i] < value;
+      loop invariant \forall integer i; hi < i < length ==> value < sortedArray[i];
+      loop assigns lo, hi;
+      loop variant hi - lo + 1;
+    */
+    while (lo <= hi) {
+        int mid = lo + (hi - lo) / 2;
+        if (sortedArray[mid] == value) {
+            return mid;
+        } else if (sortedArray[mid] < value) {
+            lo = mid + 1;
+        } else {
+            hi = mid - 1;
+        }
+    }
+
+    return -1;
+}
+"""
+
+  EXAMPLE_LTM_RESPONSE3 = """
+Let's break down the problem step by step and generate the ACSL specifications for the `binary_search` method.
+
+---
+
+### 1. **Weakest Preconditions**
+The weakest preconditions for the `search` method are:
+  - The input array `sortedArray` must not be `null`.
+  - The length of `sortedArray` must be greater than 0 and less than `Integer.MAX_VALUE` to avoid arithmetic overflow.
+  - The array must be sorted in non-decreasing order.
+
+---
+
+### 2. **Strongest Postconditions**
+The strongest postconditions for the `Abs` method are:
+   - If the `value` exists in the array, the method returns the index of the `value` in the array, and the index is within the bounds of the array.
+   - If the `value` does not exist in the array, the method returns `-1`.
+
+---
+
+### 3. **Necessary Specifications**
+   - **Loop Invariants**:
+     - The indices `lo` and `hi` remain within the bounds of the array.
+     - If the `value` exists in the array, it must lie between `sortedArray[lo]` and `sortedArray[hi]`.
+     - All elements to the left of `lo` are less than `value`.
+     - All elements to the right of `hi` are greater than `value`.
+   - **Ranking Functions**:
+     - The difference `hi - lo` decreases with each iteration, ensuring termination.
+   - **Assertions**:
+     - After the loop, if the `value` is not found, the method returns `-1`.
+
+---
+
+### SPECIFICATION
+
+```
+#include <limits.h>
+
+/*@
+  requires sortedArray != \null;
+  requires 0 < length < INT_MAX;
+  requires \forall integer i; 0 <= i < length ==> 
+             \forall integer j; i < j < length ==> sortedArray[i] <= sortedArray[j];
+
+  // ghost variable for specification: whether the value is in the array
+  assigns \nothing;
+  ensures (\exists integer i; 0 <= i < length && sortedArray[i] == value) 
+           <==> (0 <= \result < length);
+  ensures !(\exists integer i; 0 <= i < length && sortedArray[i] == value) 
+           <==> (\result == -1);
+*/
+int binary_search(const int* sortedArray, int length, int value) {
+    if (value < sortedArray[0]) return -1;
+    if (value > sortedArray[length - 1]) return -1;
+
+    int lo = 0;
+    int hi = length - 1;
+
+    /*@
+      loop invariant 0 <= lo <= hi + 1 && hi < length;
+      loop invariant \exists integer i; 0 <= i < length ==> 
+                       (sortedArray[i] == value) ==> (lo <= i <= hi);
+      loop invariant \forall integer i; 0 <= i < lo ==> sortedArray[i] < value;
+      loop invariant \forall integer i; hi < i < length ==> value < sortedArray[i];
+      loop assigns lo, hi;
+      loop variant hi - lo + 1;
+    */
+    while (lo <= hi) {
+        int mid = lo + (hi - lo) / 2;
+        if (sortedArray[mid] == value) {
+            return mid;
+        } else if (sortedArray[mid] < value) {
+            lo = mid + 1;
+        } else {
+            hi = mid - 1;
+        }
+    }
+
+    return -1;
+}
+
+```
+"""
+
 _UNSUPPORTED_SUMNUMPRODUCT_QUANTIFIER_DESC = """
 OpenJML does not fully support JML's inductive quantifiers like \\num_of, \\sum, and \\product in specifications. These operators require inductive reasoning (e.g., counting elements, summing values over a range, or computing products), which is difficult for SMT solvers (the engines behind OpenJML and most of deductive verification tools) to handle.
 """

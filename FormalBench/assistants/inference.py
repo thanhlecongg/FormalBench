@@ -122,7 +122,7 @@ class SpecInfer():
             self.language = "c"
             self.spec_language = "ACSL"
             self.gen_query = "Please generate JML specifications for the provided C code." 
-        
+            self.example_set = CExample
         else:
             raise ValueError(
                 f"Currently, we only Java and C language are supported. Please select 'java' or 'c' as the language."
