@@ -261,7 +261,7 @@ int abs(int num) {
 
 /*@
   requires num != -INT_MAX; 
-  ensures \result == ((num < 0) ? -num : num);
+  ensures \\result == ((num < 0) ? -num : num);
 */
 int abs(int num) {
     if (num < 0)
@@ -293,14 +293,14 @@ int extended_Euclid(int x, int y, int *p, int *q) {
 ```
 /*@ requires x >= 0 && y >= 0;
 @ behavior bezoutProperty:
-@   ensures (*p)*x + (*q)*y == \result;
+@   ensures (*p)*x + (*q)*y == \\result;
 @*/
 int extended_Euclid(int x, int y, int *p, int *q) {
     int a = 1, b = 0, c = 0, d = 1;
     /*@ loop invariant x >= 0 && y >= 0 ;
         @ for bezoutProperty: loop invariant
-        @   a*\at(x,Pre) + b*\at(y,Pre) == x &&
-        @   c*\at(x,Pre) + d*\at(y,Pre) == y ;
+        @   a*\\at(x,Pre) + b*\\at(y,Pre) == x &&
+        @   c*\\at(x,Pre) + d*\\at(y,Pre) == y ;
         @ loop variant y;
         @*/
     while (y > 0) {
@@ -367,8 +367,8 @@ This condition is formalized under the named behavior **`bezoutProperty`**, allo
 loop invariant x >= 0 && y >= 0;
 for bezoutProperty:
   loop invariant 
-    a*\at(x,Pre) + b*\at(y,Pre) == x &&
-    c*\at(x,Pre) + d*\at(y,Pre) == y;
+    a*\\at(x,Pre) + b*\\at(y,Pre) == x &&
+    c*\\at(x,Pre) + d*\\at(y,Pre) == y;
 ```
 
 - The first invariant preserves the non-negativity of `x` and `y` throughout execution.
@@ -410,7 +410,7 @@ a \cdot x₀ + b \cdot y₀ = \gcd(x₀, y₀)
 /*@ 
   requires x >= 0 && y >= 0;
   behavior bezoutProperty:
-    ensures (*p)*x + (*q)*y == \result;
+    ensures (*p)*x + (*q)*y == \\result;
 @*/
 int extended_Euclid(int x, int y, int *p, int *q) {
     int a = 1, b = 0, c = 0, d = 1;
@@ -418,8 +418,8 @@ int extended_Euclid(int x, int y, int *p, int *q) {
       loop invariant x >= 0 && y >= 0;
       for bezoutProperty:
         loop invariant 
-          a*\at(x,Pre) + b*\at(y,Pre) == x &&
-          c*\at(x,Pre) + d*\at(y,Pre) == y;
+          a*\\at(x,Pre) + b*\\at(y,Pre) == x &&
+          c*\\at(x,Pre) + d*\\at(y,Pre) == y;
       loop variant y;
     @*/
     while (y > 0) {
@@ -464,17 +464,17 @@ int binary_search(const int* sortedArray, int length, int value) {
 #include <limits.h>
 
 /*@
-  requires sortedArray != \null;
+  requires sortedArray != \\null;
   requires 0 < length < INT_MAX;
-  requires \forall integer i; 0 <= i < length ==> 
-             \forall integer j; i < j < length ==> sortedArray[i] <= sortedArray[j];
+  requires \\forall integer i; 0 <= i < length ==> 
+             \\forall integer j; i < j < length ==> sortedArray[i] <= sortedArray[j];
 
   // ghost variable for specification: whether the value is in the array
-  assigns \nothing;
+  assigns \\nothing;
   ensures (\exists integer i; 0 <= i < length && sortedArray[i] == value) 
-           <==> (0 <= \result < length);
+           <==> (0 <= \\result < length);
   ensures !(\exists integer i; 0 <= i < length && sortedArray[i] == value) 
-           <==> (\result == -1);
+           <==> (\\result == -1);
 */
 int binary_search(const int* sortedArray, int length, int value) {
     if (value < sortedArray[0]) return -1;
@@ -485,10 +485,10 @@ int binary_search(const int* sortedArray, int length, int value) {
 
     /*@
       loop invariant 0 <= lo <= hi + 1 && hi < length;
-      loop invariant \exists integer i; 0 <= i < length ==> 
+      loop invariant \\exists integer i; 0 <= i < length ==> 
                        (sortedArray[i] == value) ==> (lo <= i <= hi);
-      loop invariant \forall integer i; 0 <= i < lo ==> sortedArray[i] < value;
-      loop invariant \forall integer i; hi < i < length ==> value < sortedArray[i];
+      loop invariant \\forall integer i; 0 <= i < lo ==> sortedArray[i] < value;
+      loop invariant \\forall integer i; hi < i < length ==> value < sortedArray[i];
       loop assigns lo, hi;
       loop variant hi - lo + 1;
     */
@@ -546,17 +546,17 @@ The strongest postconditions for the `Abs` method are:
 #include <limits.h>
 
 /*@
-  requires sortedArray != \null;
+  requires sortedArray != \\null;
   requires 0 < length < INT_MAX;
-  requires \forall integer i; 0 <= i < length ==> 
-             \forall integer j; i < j < length ==> sortedArray[i] <= sortedArray[j];
+  requires \\forall integer i; 0 <= i < length ==> 
+             \\forall integer j; i < j < length ==> sortedArray[i] <= sortedArray[j];
 
   // ghost variable for specification: whether the value is in the array
-  assigns \nothing;
+  assigns \\nothing;
   ensures (\exists integer i; 0 <= i < length && sortedArray[i] == value) 
-           <==> (0 <= \result < length);
+           <==> (0 <= \\result < length);
   ensures !(\exists integer i; 0 <= i < length && sortedArray[i] == value) 
-           <==> (\result == -1);
+           <==> (\\result == -1);
 */
 int binary_search(const int* sortedArray, int length, int value) {
     if (value < sortedArray[0]) return -1;
@@ -567,10 +567,10 @@ int binary_search(const int* sortedArray, int length, int value) {
 
     /*@
       loop invariant 0 <= lo <= hi + 1 && hi < length;
-      loop invariant \exists integer i; 0 <= i < length ==> 
+      loop invariant \\exists integer i; 0 <= i < length ==> 
                        (sortedArray[i] == value) ==> (lo <= i <= hi);
-      loop invariant \forall integer i; 0 <= i < lo ==> sortedArray[i] < value;
-      loop invariant \forall integer i; hi < i < length ==> value < sortedArray[i];
+      loop invariant \\forall integer i; 0 <= i < lo ==> sortedArray[i] < value;
+      loop invariant \\forall integer i; hi < i < length ==> value < sortedArray[i];
       loop assigns lo, hi;
       loop variant hi - lo + 1;
     */

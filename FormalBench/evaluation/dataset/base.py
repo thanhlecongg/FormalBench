@@ -2,10 +2,14 @@ from huggingface_hub import snapshot_download
 import os
 import json
 
-def load_base_dataset():
+def load_base_dataset(local_dir=None, use_remote=True):
     print("Loading Formal-Base dataset")
-    local_dir = snapshot_download("FormalBench/FormalBench", repo_type="dataset")
-    print("Downloaded dataset successfully, storing in local directory: ", local_dir)
+    assert local_dir is None or use_remote, "local_dir should be None when use_remote is True"
+    if local_dir is not None:
+        print("Downloading dataset to local directory: ", local_dir)
+        local_dir = snapshot_download("FormalBench/FormalBench", repo_type="dataset")
+        print("Downloaded dataset successfully, storing in local directory: ", local_dir)
+
     data_dir = os.path.join(local_dir, "base")
     meta_path = os.path.join(data_dir, "meta_data.jsonl")
     meta_data = {}
