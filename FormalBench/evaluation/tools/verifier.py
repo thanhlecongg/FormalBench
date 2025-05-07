@@ -298,14 +298,20 @@ class FramaCVerifier(Verifier):
         copy_to_container(self.container, path, self.tmp_dir)
         path_in_container = os.path.join(self.tmp_dir, os.path.basename(path))
 
-        cmd = "frama-c -wp -wp-precond-weakening -wp-no-callee-precond -warn-signed-overflow -warn-unsigned-overflow -warn-invalid-pointer -wp-model Typed+ref -wp-prover Alt-Ergo,Z3 -wp-print -wp-timeout {} {}".format(
+        cmd = "timeout {} frama-c -wp -wp-precond-weakening -wp-no-callee-precond -warn-signed-overflow -warn-unsigned-overflow -warn-invalid-pointer -wp-model Typed+ref -wp-prover Alt-Ergo,Z3 -wp-print {}".format(
             timeout, path_in_container)
         cmd_splitted = cmd.split(" ")
         print("Executing command: {}".format(cmd))
 
         # Call the docker container to run the command
         exec_result = self.container.exec_run(cmd_splitted)
+        if exec_result.exit_code == 124:
+            tar_file = path + ".tar"
+            if os.path.exists(tar_file):
+                os.remove(tar_file)
+            return (-1, "Timeout")
         output = exec_result.output.decode("utf-8")
+        
         tar_file = path + ".tar"
         if os.path.exists(tar_file):
             os.remove(tar_file)
@@ -325,7 +331,7 @@ class FramaCVerifier(Verifier):
                     or "[kernel] Plug-in wp aborted" in line
                     or "[wp] Warning: No goal generated" in line
                     or "error: invalid preprocessing directive" in line):
-                result_type = "Invalid"
+                result_type = "SyntaxError"
                 break
             elif "[wp] [Timeout] typed_" in line and ("_requires (" in line
                                                       or "_requires_" in line):
@@ -350,8 +356,8 @@ class FramaCVerifier(Verifier):
             return [0, output]
         elif result_type.startswith("Fail"):
             return [int(right) - int(left) - int(timeout_in_requires), output]
-        elif result_type == "Invalid":
-            return [-5, output]
+        elif result_type == "SyntaxError":
+            return [999, output]
         else:
             return [-1, output]
     

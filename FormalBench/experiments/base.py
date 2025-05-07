@@ -10,11 +10,12 @@ def experiment(
     use_remote=True,
     language="java",
     model_name="gpt-3.5-turbo",
-    prompt_type="zero-shot",
+    prompt_type="zero_shot",
     output_dir=None,
     use_docker=True,
     verbose=False,
     workflow="basic",
+    timeout=300,
 ):
     """
     Run the experiment with base dataset for a specific programming language.
@@ -28,6 +29,7 @@ def experiment(
         use_docker (bool): Whether to use Docker for inference.
         verbose (bool): Whether to print verbose output.
         workflow (str): Workflow type for the experiment.
+        timeout (int): Timeout for the verification process.
     """
     assert language in ["java","c"], "Language not supported. Only java and c are supported"
     
@@ -36,7 +38,6 @@ def experiment(
     data_dir = os.path.join(data_dir, "programs")
     print("Data directory: ", data_dir)
     print("Data size: ", len(meta_data))
-
     if output_dir is None:
         print("Output directory not specified, using default at ./output")
         output_dir = os.path.join("output", language) 
@@ -46,20 +47,30 @@ def experiment(
     os.makedirs(output_dir, exist_ok=True)
     os.makedirs(os.path.join(output_dir, "analysis_results"), exist_ok=True)
     os.makedirs(os.path.join(output_dir, "specs"), exist_ok=True)
-    
     cnt = 0
+    
+    print("Loading generator...")
+    generator = SpecInfer(
+                            workflow=workflow, 
+                            prompt_type=prompt_type, 
+                            model_name=model_name, 
+                            use_docker=use_docker, 
+                            language=language,
+                            timeout=timeout
+                        )
+    
     for class_name in tqdm(meta_data):
         config = {
             "configurable": {
                 "thread_id": str(uuid.uuid4()) + str(cnt),
             }
         }
-        file_path = os.path.join(data_dir, class_name + ".java")
+        file_path = os.path.join(data_dir, class_name + "." + language)
         output_path = os.path.join(output_dir, "analysis_results", class_name + ".json")
-        spec_path = os.path.join(output_dir, "specs", class_name + ".java")
+        spec_path = os.path.join(output_dir, "specs", class_name + "." + language)
         with open(file_path, "r") as f:
             code = f.read()
-                
+ 
         if os.path.exists(output_path) and os.path.exists(spec_path):
             spec = open(spec_path, "r").read()
             analysis_result = json.load(open(output_path, "r"))
@@ -79,5 +90,4 @@ def experiment(
                 f.write("// No specification generated")
         cnt += 1
     
-    generator = SpecInfer(workflow=workflow, prompt_type=prompt_type, model_name=model_name, use_docker=use_docker, language=language)
     print("Experiment completed successfully")

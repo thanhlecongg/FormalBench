@@ -116,12 +116,13 @@ class SpecInfer():
                     "You are an expert in Frama-C. "
                     "You will be provided with C code snippets. "
                     "Your task is to generate ACSL specifications for the given C code. "
-                    "The specifications should be written as annotations within the C code and must be compatible with the Frama-C tool for verification. "
+                    "The specifications should be written as annotations within the C code and must be compatible with the Frama-C tool for verification."
                     "Ensure the specifications include detailed preconditions, postconditions, necessary loop invariants, invariants, assertions, and any relevant assumptions."
+                    "Also, ensure that neccessary #include are maintained from the original code."
                 )
             self.language = "c"
             self.spec_language = "ACSL"
-            self.gen_query = "Please generate JML specifications for the provided C code." 
+            self.gen_query = "Please generate ACSL specifications for the provided C code." 
             self.example_set = CExample
         else:
             raise ValueError(
