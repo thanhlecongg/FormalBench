@@ -37,6 +37,20 @@ python3 -m venv .env
 pip3 install -e .[default]
 ```
 
+- Step 4: Setup API keys:
+To use LLMs and langsmith (optional), please setup the enviroment file at `FormalBench/config/.env`. See the following for an example:
+```
+OPENAI_API_KEY=<OpenAI API Key>
+DEEPSEEK_API_KEY = <DeepSeek API Key>
+ANTHROPIC_API_KEY = <Anthropic API Key>
+
+### Optional
+LANGSMITH_TRACING=true
+LANGSMITH_ENDPOINT="https://api.smith.langchain.com"
+LANGSMITH_API_KEY=<LangSmith API key>
+LANGSMITH_PROJECT=<LangSmith Projet Name>
+```
+
 ## Supported Features
 
 - Language: Currently, we only support Java with its specification language, JML
