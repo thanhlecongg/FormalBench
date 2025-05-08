@@ -27,8 +27,12 @@ def eval_consistency(
         assert verifier_name == "OpenJML", "Only OpenJML is supported for Java programs"
         verifier = create_verifier(verifier_name, verifier_version)
         ending = ".java"
+    elif language == "c":
+        assert verifier_name == "FramaC", "Only FramaC is supported for C programs"
+        verifier = create_verifier(verifier_name, verifier_version)
+        ending = ".c"
     else:
-        raise ValueError("Unknown language: {}. Please select ['java']".format(language))
+        raise ValueError("Unknown language: {}. Please select ['java', 'c']".format(language))
     
     assert os.path.exists(spec_dir), "Spec directory does not exist"
     os.makedirs(analysis_dir, exist_ok=True)
@@ -40,13 +44,12 @@ def eval_consistency(
     total_evaluated_specs = len(evaluated_specs)
     
     print("Evaluating the consistency of {} specifications stored in {}".format(total_evaluated_specs, spec_dir))
-    
     number_of_failures = 0
     number_of_successes = 0
     number_of_unknown = 0
     
     for spec_name in tqdm(evaluated_specs):
-        spec_path = os.path.join(spec_dir, spec_name + ".java")
+        spec_path = os.path.join(spec_dir, spec_name + ending)
         analysis_path = os.path.join(analysis_dir, spec_name + ".json")
         if os.path.exists(analysis_path):
             print("Analysis result file exists. Loading the result")
