@@ -234,6 +234,7 @@ class OpenJMLVerifierWithoutDocker(Verifier):
         ) -> Tuple[int, str]:
         
         abs_path = os.path.abspath(path)
+        
         command = "{} --esc --prover=cvc4 --nullable-by-default --esc-max-warnings 1 {}".format(self.exec_path, abs_path)
         print("Executing command: {}".format(command))
         output = execute_command(command, timeout)
@@ -291,12 +292,19 @@ class FramaCVerifier(Verifier):
         
     def verify(self,
                path: str,
-               timeout: int = 1800) -> Tuple[str, str]:
+               timeout: int = 1800,
+               basedir: str = ""
+            ) -> Tuple[str, str]:
 
         path = os.path.abspath(path)
-
-        copy_to_container(self.container, path, self.tmp_dir)
-        path_in_container = os.path.join(self.tmp_dir, os.path.basename(path))
+        if basedir == "":
+            tmp_dir = self.tmp_dir
+        else:
+            tmp_dir = os.path.join(self.tmp_dir, basedir)
+            self.container.exec_run(["mkdir", "-p", tmp_dir])
+            
+        copy_to_container(self.container, path, tmp_dir)
+        path_in_container = os.path.join(tmp_dir, os.path.basename(path))
 
         cmd = "timeout {} frama-c -wp -wp-precond-weakening -wp-no-callee-precond -warn-signed-overflow -warn-unsigned-overflow -warn-invalid-pointer -wp-model Typed+ref -wp-prover Alt-Ergo,Z3 -wp-print -wp-timeout 10 {}".format(
             timeout, path_in_container)

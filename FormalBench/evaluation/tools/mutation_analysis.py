@@ -8,7 +8,7 @@ from ..utils import (
     copy_from_container,
     execute_command_in_container
 )
-
+import time
 import FormalBench
 
 _LIB_DIR = os.path.dirname(os.path.abspath(FormalBench.__file__))
@@ -185,8 +185,8 @@ class MullMutantGenerator(MutantGenerator):
         
         self.home_dir="/home/FormalBench"
         self.image_name="thanhlecong/mull:latest"
-        self.environment=["MULL_CONFIG={}".format(self.config_path)]
-        
+        self.environment={"MULL_CONFIG": self.config_path}
+
         self.client = docker.from_env()
         self.container = self.client.containers.run(
             self.image_name,
@@ -200,6 +200,11 @@ class MullMutantGenerator(MutantGenerator):
             environment=self.environment
         )
         
+        ### Ensure MULL_CONFIG is set correctly
+        exec_result = self.container.exec_run("/bin/bash -c 'echo $MULL_CONFIG'")
+        assert exec_result.output.decode("utf-8").strip() == self.config_path, \
+            "MULL_CONFIG is not set correctly. Please check your docker image"
+
         assert self.container.status == "created", "Container failed to start"
         atexit.register(self.clean_up)
             
@@ -212,6 +217,16 @@ class MullMutantGenerator(MutantGenerator):
         ### Copy the config file to the container
         copy_to_container(self.container, local_config_path, self.tmp_dir)
     
+    def apply_patches(self, patch_path: str, source_path: str, out_path: str):
+        command = f"patch {source_path} < {patch_path} -o {out_path}"
+        execute_command(command)
+
+        # Get the permissions of source_path
+        source_permissions = os.stat(source_path).st_mode
+
+        # Set the same permissions to out_path
+        os.chmod(out_path, source_permissions)
+    
     def generate_mutants(self, path: str, out_dir: str):
         '''
         
@@ -220,9 +235,25 @@ class MullMutantGenerator(MutantGenerator):
         # Copy the source file to the container
         file_name = os.path.basename(path)
         absolute_path = os.path.abspath(path)
+        
+        ### Read original code
+        with open(path, "r") as f:
+            code = f.read()
+        
+        ### Add main function to the code
+        code_with_main = code + "\nint main() { return 0; }" 
+        
+        ### Write the code to a temporary file
+        with open(path, "w") as f:
+            f.write(code_with_main)
+        
         copy_to_container(self.container, path, self.tmp_dir)
         path_in_container = os.path.join(self.tmp_dir, file_name)
 
+        ### Reset code to original
+        with open(path, "w") as f:
+            f.write(code)
+        
         cmd = "clang-12 -fexperimental-new-pass-manager \
                         -fpass-plugin=/usr/lib/mull-ir-frontend-12 \
                         -g -grecord-command-line \

@@ -164,8 +164,6 @@ def eval_completeness(
         spec_dir: str,
         analysis_dir: str,
         save_dir: str,
-        verifier_name: str = "OpenJML",
-        verifier_version: int = 21,
         n_proc: int = 8,
         language: str = "java", 
         data_ids: Optional[str] = None,
@@ -176,13 +174,16 @@ def eval_completeness(
     
     os.makedirs(save_dir, exist_ok=True)
     if language == "java":
-        assert verifier_name == "OpenJML", "Only OpenJML is supported for Java programs"
         ending = ".java"
-        verifier = create_verifier(verifier_name, verifier_version)
+        verifier = create_verifier("OpenJML", 21)
         mutator = create_mutator("Major")
+    elif language == "c":
+        ending = ".c"
+        verifier = create_verifier("FramaC")
+        mutator = create_mutator("Mull")
     else:
-        raise ValueError("Unsupported language: {}. Please select from ['java']".format(language))
-    
+        raise ValueError("Unsupported language: {}. Please select from ['java', 'c']".format(language))
+
     if data_ids is None:
         benchmarks = os.listdir(spec_dir)
         benchmarks = [file_name[:-len(ending)] for file_name in benchmarks if file_name.endswith(ending)]

@@ -44,4 +44,4 @@ mutators:
   - cxx_xor_to_or  # Replaces ^ with |
   - negate_mutator  # Negates conditionals !x to x and x to !x
   - scalar_value_mutator  # Replaces zeros with 42, and non-zeros with 0
-quiet: false # enables additional logging
+quiet: true # enables additional logging
