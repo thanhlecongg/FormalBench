@@ -298,7 +298,7 @@ class FramaCVerifier(Verifier):
         copy_to_container(self.container, path, self.tmp_dir)
         path_in_container = os.path.join(self.tmp_dir, os.path.basename(path))
 
-        cmd = "timeout {} frama-c -wp -wp-precond-weakening -wp-no-callee-precond -warn-signed-overflow -warn-unsigned-overflow -warn-invalid-pointer -wp-model Typed+ref -wp-prover Alt-Ergo,Z3 -wp-print {}".format(
+        cmd = "timeout {} frama-c -wp -wp-precond-weakening -wp-no-callee-precond -warn-signed-overflow -warn-unsigned-overflow -warn-invalid-pointer -wp-model Typed+ref -wp-prover Alt-Ergo,Z3 -wp-print -wp-timeout 10 {}".format(
             timeout, path_in_container)
         cmd_splitted = cmd.split(" ")
         print("Executing command: {}".format(cmd))
@@ -324,6 +324,7 @@ class FramaCVerifier(Verifier):
         context = output.split("\n")
         # Iterate through each line in the context.
         timeout_in_requires = 0
+        all_timeout = 0
         for line in context:
             # If the line contains the string "[kernel] Frama-C aborted:", then the
             # build is invalid.
@@ -333,9 +334,10 @@ class FramaCVerifier(Verifier):
                     or "error: invalid preprocessing directive" in line):
                 result_type = "SyntaxError"
                 break
-            elif "[wp] [Timeout] typed_" in line and ("_requires (" in line
-                                                      or "_requires_" in line):
-                timeout_in_requires += 1
+            elif "[wp] [Timeout] typed_" in line:
+                if ("_requires (" in line or "_requires_" in line):
+                    timeout_in_requires += 1
+                all_timeout += 1
                 continue
             # If the line contains the string "[wp] Proved goals:", then the build
             # is valid. The number of proved goals is given in the form "x/y",
@@ -355,10 +357,17 @@ class FramaCVerifier(Verifier):
         if result_type.startswith("Pass"):
             return [0, output]
         elif result_type.startswith("Fail"):
-            return [int(right) - int(left) - int(timeout_in_requires), output]
+            n_errors = int(right) - int(left) - all_timeout
+            assert n_errors >= 0, "Number of errors should be greater than or equal to 0"
+            if n_errors == 0:
+                return [-1, output]
+            return [n_errors, output]
         elif result_type == "SyntaxError":
             return [999, output]
+        elif "Unexpected error" in output and "Please report as 'crash' at https://git.frama-c.com/pub/frama-c/issues" in output:
+            return [-5, "Internal Frama-C bug"]
         else:
+            assert output == "Timeout", "Unknown output: {}".format(output)
             return [-1, output]
     
     def clean_up(self):

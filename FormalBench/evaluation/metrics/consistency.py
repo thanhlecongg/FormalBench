@@ -10,7 +10,8 @@ def eval_consistency(
         verifier_name: str = "OpenJML",
         verifier_version: int = 21,
         timeout: int = 300,
-        language: str = "java"
+        language: str = "java",
+        re_evaluate: bool = False,
     ) -> Tuple[float, float, Dict]:
     """
     Measure the consistency metrics of a set of specifications againts their reference implementations
@@ -60,8 +61,18 @@ def eval_consistency(
                         n_errors, output, _ = result_dict["analysis_results"][-1]
                     else:
                         n_errors, output, _ = result_dict["analysis_results"]
+                if re_evaluate:
+                    with open(spec_path, "r") as f:
+                        spec = f.read()
+                    n_errors, output = verifier.verify(spec_path, timeout=timeout)
+                    if isinstance(result_dict["analysis_results"][0], list):
+                        result_dict["analysis_results"][-1] = [n_errors, output, spec]
+                    else:
+                        result_dict["analysis_results"] = [n_errors, output, spec]
+                    with open(analysis_path, "w") as f:
+                        json.dump(result_dict, f)
             except:
-                raise ValueError("Analysis result file is corrupted")
+                 raise ValueError("Analysis result file is corrupted")
         else:
             n_errors, output = verifier.verify(spec_path, timeout=timeout)
             spec = open(spec_path, "r").read()

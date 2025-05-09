@@ -16,6 +16,7 @@ def experiment(
     verbose=False,
     workflow="basic",
     timeout=300,
+    tmp_dir=None,
 ):
     """
     Run the experiment with base dataset for a specific programming language.
@@ -30,6 +31,7 @@ def experiment(
         verbose (bool): Whether to print verbose output.
         workflow (str): Workflow type for the experiment.
         timeout (int): Timeout for the verification process.
+        tmp_dir (str): Temporary directory for storing intermediate files.
     """
     assert language in ["java","c"], "Language not supported. Only java and c are supported"
     
@@ -56,7 +58,8 @@ def experiment(
                             model_name=model_name, 
                             use_docker=use_docker, 
                             language=language,
-                            timeout=timeout
+                            timeout=timeout,
+                            tmp_dir=tmp_dir,
                         )
     
     for class_name in tqdm(meta_data):
