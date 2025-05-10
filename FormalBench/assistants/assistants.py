@@ -30,6 +30,20 @@ def create_llm(model_name: str):
         return ChatOpenAI(
             model="o1-mini",
         )
+    elif model_name == "o3-mini":
+        return ChatOpenAI(
+            model="o3-mini",
+        )
+    elif model_name == "o3-mini-high":
+        return ChatOpenAI(
+            model="o3-mini",
+            reasoning_effort="high"
+        )
+    elif model_name == "o3-mini-low":
+        return ChatOpenAI(
+            model="o3-mini",
+            reasoning_effort="low",
+        )
     elif model_name == "claude":
         return ChatAnthropic(
             model="claude-3-5-sonnet-20241022",
@@ -83,6 +97,18 @@ def create_llm(model_name: str):
         raise ValueError(f"Unsupported model: {model_name}")
         
 def get_specs_from_response(response: str, language: str) -> str:
+    if "---------------" in response:
+        response_lines = response.split("\n")
+        new_response = []
+        is_start = False
+        for line in response_lines:
+            if line.startswith("---------------"):
+                is_start = not is_start
+                continue
+            if is_start:
+                new_response.append(line)
+        response = "\n".join(new_response)
+    
     if "<|im_start|>assistant" in response:
             ### Using CodeQwen
             response = response.split("<|im_start|>assistant")[-1]

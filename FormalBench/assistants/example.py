@@ -1,73 +1,23 @@
+import FormalBench
+
+ABS_PATH = FormalBench.__path__[0] + "/assistants/examples"
 class JavaExample:
-  EXAMPLE_CODE1 = """
-public class SumMax {
+    with open(f"{ABS_PATH}/java/1.java", "r") as f:
+      EXAMPLE_CODE1 = f.read()
 
-    void sumMax(int[] a) {
-      int sum = 0;
-      int max = a[0];
-  
-      for (int i=0; i<a.length; i++) {
-        sum += a[i];
-        if (max < a[i]) max = a[i];
-      }
-    }
-  
-}
-"""
+    with open(f"{ABS_PATH}/java/1_spec.java", "r") as f:
+      EXAMPLE_SPEC1 = f.read()
+      EXAMPLE_SPEC1 = "```\n" + EXAMPLE_SPEC1 + "\n```\n"
 
-  EXAMPLE_SPEC1 = """
-```
-public class SumMax {
+    with open(f"{ABS_PATH}/java/2.java", "r") as f:
+      EXAMPLE_CODE2 = f.read()
+    
+    with open(f"{ABS_PATH}/java/2_spec.java", "r") as f:
+      EXAMPLE_SPEC2 = f.read()
+      EXAMPLE_SPEC2 = "```\n" + EXAMPLE_SPEC2 + "\n```\n"
 
-    //@ requires a != null;
-    //@ requires a.length > 0;
-    void sumMax(int[] a) {
-      int sum = 0;
-      int max = a[0];
-  
-      //@ loop_invariant 0 <= i <= a.length;
-      //@ loop_invariant sum <= \\count * max; 
-      for (int i=0; i < a.length; i++) {
-        //@ assume Integer.MIN_VALUE <= sum + a[i] <= Integer.MAX_VALUE; 
-        sum += a[i];
-        if (max < a[i]) max = a[i];
-      }
-  }
-  
-}
-```
-"""
 
-  EXAMPLE_CODE2 = """
-
-public class Abs {
-	public int Abs(int num) {
-		if (num < 0)
-			return -num;
-		else
-			return num;
-	}
-
-}
-"""
-
-  EXAMPLE_SPEC2 = """
-```
-public class Abs {
-	//@ requires num != Integer.MIN_VALUE;
-	//@ ensures \\result == ((num < 0) ? -num : num);
-	public int Abs(int num) {
-		if (num < 0)
-			return -num;
-		else
-			return num;
-	}
-
-}
-```
-"""
-
-  EXAMPLE_LTM_RESPONSE2 = """
+    EXAMPLE_LTM_RESPONSE2 = """
 Let's break down the problem step by step and generate the JML specifications for the `Abs` class.
 
 ---
@@ -95,83 +45,16 @@ The strongest postconditions for the `Abs` method are:
 
 ### SPECIFICATION
 
-```
-public class Abs {
-	//@ requires num != Integer.MIN_VALUE;
-	//@ ensures \\result == ((num < 0) ? -num : num);
-	public int Abs(int num) {
-		if (num < 0)
-			return -num;
-		else
-			return num;
-	}
+""" + EXAMPLE_SPEC2
 
-}
-```
-"""
+    with open(f"{ABS_PATH}/java/3.java", "r") as f:
+      EXAMPLE_CODE3 = f.read()
+      
+    with open(f"{ABS_PATH}/java/3_spec.java", "r") as f:
+      EXAMPLE_SPEC3 = f.read()
+      EXAMPLE_SPEC3 = "```\n" + EXAMPLE_SPEC3 + "\n```\n"
 
-  EXAMPLE_CODE3 = """
-public class BinarySearch {
-
-    public static int search(int[] sortedArray, int value) {
-        
-        if (value < sortedArray[0]) return -1;
-        if (value > sortedArray[sortedArray.length-1]) return -1;
-        int lo = 0;
-        int hi = sortedArray.length-1;
-        
-        while (lo <= hi) {
-            int mid = lo + (hi-lo)/2;
-            if (sortedArray[mid] == value) {
-                return mid;
-            } else if (sortedArray[mid] < value) {
-                lo = mid+1;
-            } else {
-                hi = mid-1;
-            }
-        }
-        return -1;
-    }
-}
-"""
-  EXAMPLE_SPEC3 = """
-public class BinarySearch {
-    
-    //@ requires sortedArray != null && 0 < sortedArray.length < Integer.MAX_VALUE;
-    //@ requires \\forall int i; 0 <= i < sortedArray.length; \\forall int j; i < j < sortedArray.length; sortedArray[i] <= sortedArray[j];
-    //@ old boolean containsValue = (\\exists int i; 0 <= i < sortedArray.length; sortedArray[i] == value);
-    //@ ensures containsValue <==> 0 <= \\result < sortedArray.length;
-    //@ ensures !containsValue <==> \\result == -1;
-    //@ pure
-    public static int search(int[] sortedArray, int value) {
-        
-        //@ ghost boolean containsValue = (\\exists int i; 0 <= i < sortedArray.length; sortedArray[i] == value);
-        if (value < sortedArray[0]) return -1;
-        if (value > sortedArray[sortedArray.length-1]) return -1;
-        int lo = 0;
-        int hi = sortedArray.length-1;
-        
-        //@ loop_invariant 0 <= lo < sortedArray.length && 0 <= hi < sortedArray.length;
-        //@ loop_invariant containsValue ==> sortedArray[lo] <= value <= sortedArray[hi];
-        //@ loop_invariant \\forall int i; 0 <= i < lo; sortedArray[i] < value;
-        //@ loop_invariant \\forall int i; hi < i < sortedArray.length; value < sortedArray[i];
-        //@ loop_decreases hi - lo;
-        while (lo <= hi) {
-            int mid = lo + (hi-lo)/2;
-            if (sortedArray[mid] == value) {
-                return mid;
-            } else if (sortedArray[mid] < value) {
-                lo = mid+1;
-            } else {
-                hi = mid-1;
-            }
-        }
-        return -1;
-    }
-}
-"""
-
-  EXAMPLE_LTM_RESPONSE3 = """
+    EXAMPLE_LTM_RESPONSE3 = """
 Let's break down the problem step by step and generate the JML specifications for the `BinarySearch` class.
 
 ---
@@ -186,410 +69,169 @@ The weakest preconditions for the `search` method are:
 
 ### 2. **Strongest Postconditions**
 The strongest postconditions for the `Abs` method are:
-   - If the `value` exists in the array, the method returns the index of the `value` in the array, and the index is within the bounds of the array.
-   - If the `value` does not exist in the array, the method returns `-1`.
+  - If the `value` exists in the array, the method returns the index of the `value` in the array, and the index is within the bounds of the array.
+  - If the `value` does not exist in the array, the method returns `-1`.
 
 ---
 
 ### 3. **Necessary Specifications**
-   - **Loop Invariants**:
-     - The indices `lo` and `hi` remain within the bounds of the array.
-     - If the `value` exists in the array, it must lie between `sortedArray[lo]` and `sortedArray[hi]`.
-     - All elements to the left of `lo` are less than `value`.
-     - All elements to the right of `hi` are greater than `value`.
-   - **Ranking Functions**:
-     - The difference `hi - lo` decreases with each iteration, ensuring termination.
-   - **Assertions**:
-     - After the loop, if the `value` is not found, the method returns `-1`.
+  - **Loop Invariants**:
+    - The indices `lo` and `hi` remain within the bounds of the array.
+    - If the `value` exists in the array, it must lie between `sortedArray[lo]` and `sortedArray[hi]`.
+    - All elements to the left of `lo` are less than `value`.
+    - All elements to the right of `hi` are greater than `value`.
+  - **Ranking Functions**:
+    - The difference `hi - lo` decreases with each iteration, ensuring termination.
+  - **Assertions**:
+    - After the loop, if the `value` is not found, the method returns `-1`.
 
 ---
 
 ### SPECIFICATION
 
-```
-public class BinarySearch {
-    
-    //@ requires sortedArray != null && 0 < sortedArray.length < Integer.MAX_VALUE;
-    //@ requires \\forall int i; 0 <= i < sortedArray.length; \\forall int j; i < j < sortedArray.length; sortedArray[i] <= sortedArray[j];
-    //@ old boolean containsValue = (\\exists int i; 0 <= i < sortedArray.length; sortedArray[i] == value);
-    //@ ensures containsValue <==> 0 <= \\result < sortedArray.length;
-    //@ ensures !containsValue <==> \\result == -1;
-    //@ pure
-    public static int search(int[] sortedArray, int value) {
-        
-        //@ ghost boolean containsValue = (\\exists int i; 0 <= i < sortedArray.length; sortedArray[i] == value);
-        if (value < sortedArray[0]) return -1;
-        if (value > sortedArray[sortedArray.length-1]) return -1;
-        int lo = 0;
-        int hi = sortedArray.length-1;
-        
-        //@ loop_invariant 0 <= lo < sortedArray.length && 0 <= hi < sortedArray.length;
-        //@ loop_invariant containsValue ==> sortedArray[lo] <= value <= sortedArray[hi];
-        //@ loop_invariant \\forall int i; 0 <= i < lo; sortedArray[i] < value;
-        //@ loop_invariant \\forall int i; hi < i < sortedArray.length; value < sortedArray[i];
-        //@ loop_decreases hi - lo;
-        while (lo <= hi) {
-            int mid = lo + (hi-lo)/2;
-            if (sortedArray[mid] == value) {
-                return mid;
-            } else if (sortedArray[mid] < value) {
-                lo = mid+1;
-            } else {
-                hi = mid-1;
-            }
-        }
-        return -1;
-    }
-}
-```
-"""
+  """ + EXAMPLE_SPEC3
 
 
 class CExample:
-  EXAMPLE_CODE1 = """
-int abs(int num) {
-    if (num < 0)
-      return -num;
-    else
-      return num;
-}
-"""
+    with open(f"{ABS_PATH}/c/1.c", "r") as f:
+      EXAMPLE_CODE1 = f.read()
 
-  EXAMPLE_SPEC1 = """
-```
-#include <limits.h>
+    with open(f"{ABS_PATH}/c/1_spec.c", "r") as f:
+      EXAMPLE_SPEC1 = f.read()
+      EXAMPLE_SPEC1 = "```\n" + EXAMPLE_SPEC1 + "\n```\n"
 
-/*@
-  requires num != -INT_MAX; 
-  ensures \\result == ((num < 0) ? -num : num);
-*/
-int abs(int num) {
-    if (num < 0)
-      return -num;
-    else
-      return num;
-}
-```
-"""
+    with open(f"{ABS_PATH}/c/2.c", "r") as f:
+      EXAMPLE_CODE2 = f.read()
 
-  EXAMPLE_CODE2 = """
-int extended_Euclid(int x, int y, int *p, int *q) {
-    int a = 1, b = 0, c = 0, d = 1;
-    while (y > 0) {
-        int r = x % y;
-        int q = x / y;
-        int ta = a, tb = b;
-        x = y; y = r;
-        a = c; b = d;
-        c = ta - c * q;
-        d = tb - d * q;
-    }
-    *p = a; *q = b;
-    return x;
-}
-"""
+    with open(f"{ABS_PATH}/c/2_spec.c", "r") as f:
+      EXAMPLE_SPEC2 = f.read()
+      EXAMPLE_SPEC2 = "```\n" + EXAMPLE_SPEC2 + "\n```\n"
 
-  EXAMPLE_SPEC2 = """
-```
-/*@ requires x >= 0 && y >= 0;
-@ behavior bezoutProperty:
-@   ensures (*p)*x + (*q)*y == \\result;
-@*/
-int extended_Euclid(int x, int y, int *p, int *q) {
-    int a = 1, b = 0, c = 0, d = 1;
-    /*@ loop invariant x >= 0 && y >= 0 ;
-        @ for bezoutProperty: loop invariant
-        @   a*\\at(x,Pre) + b*\\at(y,Pre) == x &&
-        @   c*\\at(x,Pre) + d*\\at(y,Pre) == y ;
-        @ loop variant y;
-        @*/
-    while (y > 0) {
-        int r = x % y;
-        int q = x / y;
-        int ta = a, tb = b;
-        x = y; y = r;
-        a = c; b = d;
-        c = ta - c * q;
-        d = tb - d * q;
-    }
-    *p = a; *q = b;
-    return x;
-}
-```
-"""
-
-  EXAMPLE_LTM_RESPONSE2 = """
-Let's break down the problem step by step and generate the ACSL specifications for the `extended_euclid` method.
-
----
-
-## 1. **Mathematical Context**
-
-This function implements the **extended Euclidean algorithm**, which computes the **greatest common divisor (GCD)** of two non-negative integers `x` and `y`, along with two integers `p` and `q` such that:
-
-\[
-p \cdot x + q \cdot y = \gcd(x, y)
-\]
-
-This property is known as **Bézout’s identity**, and the integers `p` and `q` are referred to as **Bézout coefficients**.
-
----
-
-## 2. **Weakest Preconditions**
-
-The following preconditions are necessary for the function to operate correctly:
-
-- `x >= 0 && y >= 0`: Ensures that the inputs lie within the domain of natural numbers.
-- These constraints ensure the `%` and `/` operators are mathematically valid and avoid undefined behavior.
-
----
-
-## 3. **Strongest Postconditions**
-
-The following postconditions are necessary for the function to operate correctly:
-
-- The return value is `g = gcd(x, y)`.
-- The values stored at memory locations `*p` and `*q` are such that:
-
-\[
-(*p) \cdot x + (*q) \cdot y = \gcd(x, y)
-\]
-
-This condition is formalized under the named behavior **`bezoutProperty`**, allowing modular verification.
-
----
-
-## 4. **Loop Annotations**
-
-### Loop Invariants
-
-```c
-loop invariant x >= 0 && y >= 0;
-for bezoutProperty:
-  loop invariant 
-    a*\\at(x,Pre) + b*\\at(y,Pre) == x &&
-    c*\\at(x,Pre) + d*\\at(y,Pre) == y;
-```
-
-- The first invariant preserves the non-negativity of `x` and `y` throughout execution.
-- The Bézout-specific invariants track the evolution of the coefficients:
-  - `a*x₀ + b*y₀ = x`
-  - `c*x₀ + d*y₀ = y`
-  - Here, `x₀` and `y₀` denote the initial values of `x` and `y` using `\at(..., Pre)`.
-
-This allows the loop to iteratively maintain the correctness of the linear combination during each Euclidean division step.
-
-### Loop Variant (Ranking Function)
-
-```c
-loop variant y;
-```
-
-This ranking function guarantees that `y` decreases with each iteration (since `r = x % y`), and thus the loop will eventually terminate.
-
----
-
-## 5. **Correctness Guarantee**
-
-Upon termination of the loop:
-
-- `y == 0`, implying that `x` now holds the **GCD** of the original `x` and `y` values.
-- The loop invariants ensure that `a` and `b` satisfy:
-
-\[
-a \cdot x₀ + b \cdot y₀ = \gcd(x₀, y₀)
-\]
-
-- Finally, assigning `*p = a; *q = b;` and returning `x` completes the computation of Bézout’s coefficients and the GCD.
-
----
-
-### SPECIFICATION
-
-```c
-/*@ 
-  requires x >= 0 && y >= 0;
-  behavior bezoutProperty:
-    ensures (*p)*x + (*q)*y == \\result;
-@*/
-int extended_Euclid(int x, int y, int *p, int *q) {
-    int a = 1, b = 0, c = 0, d = 1;
-    /*@ 
-      loop invariant x >= 0 && y >= 0;
-      for bezoutProperty:
-        loop invariant 
-          a*\\at(x,Pre) + b*\\at(y,Pre) == x &&
-          c*\\at(x,Pre) + d*\\at(y,Pre) == y;
-      loop variant y;
-    @*/
-    while (y > 0) {
-        int r = x % y;
-        int q = x / y;
-        int ta = a, tb = b;
-        x = y; y = r;
-        a = c; b = d;
-        c = ta - c * q;
-        d = tb - d * q;
-    }
-    *p = a;
-    *q = b;
-    return x;
-}
-```
-"""
-
-  EXAMPLE_CODE3 = """
-int binary_search(const int* sortedArray, int length, int value) {
-    if (value < sortedArray[0]) return -1;
-    if (value > sortedArray[length - 1]) return -1;
-
-    int lo = 0;
-    int hi = length - 1;
-
-    while (lo <= hi) {
-        int mid = lo + (hi - lo) / 2;
-        if (sortedArray[mid] == value) {
-            return mid;
-        } else if (sortedArray[mid] < value) {
-            lo = mid + 1;
-        } else {
-            hi = mid - 1;
-        }
-    }
-
-    return -1;
-}
-"""
-  EXAMPLE_SPEC3 = """
-#include <limits.h>
-
-/*@
-  requires sortedArray != \\null;
-  requires 0 < length < INT_MAX;
-  requires \\forall integer i; 0 <= i < length ==> 
-             \\forall integer j; i < j < length ==> sortedArray[i] <= sortedArray[j];
-
-  // ghost variable for specification: whether the value is in the array
-  assigns \\nothing;
-  ensures (\exists integer i; 0 <= i < length && sortedArray[i] == value) 
-           <==> (0 <= \\result < length);
-  ensures !(\exists integer i; 0 <= i < length && sortedArray[i] == value) 
-           <==> (\\result == -1);
-*/
-int binary_search(const int* sortedArray, int length, int value) {
-    if (value < sortedArray[0]) return -1;
-    if (value > sortedArray[length - 1]) return -1;
-
-    int lo = 0;
-    int hi = length - 1;
-
-    /*@
-      loop invariant 0 <= lo <= hi + 1 && hi < length;
-      loop invariant \\exists integer i; 0 <= i < length ==> 
-                       (sortedArray[i] == value) ==> (lo <= i <= hi);
-      loop invariant \\forall integer i; 0 <= i < lo ==> sortedArray[i] < value;
-      loop invariant \\forall integer i; hi < i < length ==> value < sortedArray[i];
-      loop assigns lo, hi;
-      loop variant hi - lo + 1;
-    */
-    while (lo <= hi) {
-        int mid = lo + (hi - lo) / 2;
-        if (sortedArray[mid] == value) {
-            return mid;
-        } else if (sortedArray[mid] < value) {
-            lo = mid + 1;
-        } else {
-            hi = mid - 1;
-        }
-    }
-
-    return -1;
-}
-"""
-
-  EXAMPLE_LTM_RESPONSE3 = """
-Let's break down the problem step by step and generate the ACSL specifications for the `binary_search` method.
+    EXAMPLE_LTM_RESPONSE2 = """
+Let's break down the problem step by step and analyze the formal specification of the `bubbleSort` function.
 
 ---
 
 ### 1. **Weakest Preconditions**
-The weakest preconditions for the `search` method are:
-  - The input array `sortedArray` must not be `null`.
-  - The length of `sortedArray` must be greater than 0 and less than `Integer.MAX_VALUE` to avoid arithmetic overflow.
-  - The array must be sorted in non-decreasing order.
+
+The weakest preconditions for the `bubbleSort` method are:
+* The pointer `a` must reference a valid memory block of at least `n` elements, i.e., `\valid(a + (0..n-1))`.
+* The array length `n` must be strictly greater than 0, i.e., `n > 0`. This ensures the sorting logic has at least one element to work with and avoids undefined behavior such as underflow in the loop bounds.
 
 ---
 
 ### 2. **Strongest Postconditions**
-The strongest postconditions for the `Abs` method are:
-   - If the `value` exists in the array, the method returns the index of the `value` in the array, and the index is within the bounds of the array.
-   - If the `value` does not exist in the array, the method returns `-1`.
+
+The strongest postconditions for the `bubbleSort` method are:
+* The array is sorted in non-decreasing order, i.e.,
+  `\forall integer i, j; 0 <= i <= j <= n-1 ==> a[i] <= a[j]`.
+  This condition ensures that, after execution, every earlier element in the array is less than or equal to every later element, confirming that the array is correctly sorted.
 
 ---
 
 ### 3. **Necessary Specifications**
-   - **Loop Invariants**:
-     - The indices `lo` and `hi` remain within the bounds of the array.
-     - If the `value` exists in the array, it must lie between `sortedArray[lo]` and `sortedArray[hi]`.
-     - All elements to the left of `lo` are less than `value`.
-     - All elements to the right of `hi` are greater than `value`.
-   - **Ranking Functions**:
-     - The difference `hi - lo` decreases with each iteration, ensuring termination.
-   - **Assertions**:
-     - After the loop, if the `value` is not found, the method returns `-1`.
+
+* **Assertions**: While no explicit `assert` statements are included, the loop invariants serve as implicit assertions to verify intermediate correctness at each loop iteration.
+
+* **Loop Invariants**:
+
+  * **Outer Loop (`i` loop):**
+
+    * `\forall integer p, q; i <= p <= q <= n-1 ==> a[p] <= a[q]`
+      → Ensures the suffix `a[i..n-1]` is sorted.
+    * `\forall integer p, q; 0 <= p < i+1 == q <= n-1 ==> a[p] <= a[q]`
+      → Ensures elements before and after the current `i` boundary respect the sorted order.
+    * `0 <= i < n`
+      → Maintains the loop variable within bounds.
+  * **Inner Loop (`j` loop):**
+
+    * `0 <= j <= i < n`
+      → Bounds check for the inner loop variable.
+    * `\forall integer k; 0 <= k <= j ==> a[k] <= a[j]`
+      → Describes the “bubbling up” of the maximum element toward the right.
+    * `\forall integer p, q; 0 <= p < i+1 == q <= n-1 ==> a[p] <= a[q]`
+      → Maintains that elements prior to `i+1` are no greater than those following it.
+
+* **Assumptions**:
+
+  * As previously noted, the assumptions are:
+
+    * `\valid(a + (0..n-1))`
+    * `n > 0`
+      These are required to ensure safe memory access and meaningful loop bounds.
+
+* **Ranking Functions**:
+
+  * For the **outer loop**: `i`
+    → Decreases each iteration (`i--`), proving termination.
+  * For the **inner loop**: `i - j`
+    → Since `j` increases while `i` remains fixed, this difference decreases, ensuring the loop terminates.
 
 ---
 
 ### SPECIFICATION
 
-```
-#include <limits.h>
+  """ + EXAMPLE_SPEC2
 
-/*@
-  requires sortedArray != \\null;
-  requires 0 < length < INT_MAX;
-  requires \\forall integer i; 0 <= i < length ==> 
-             \\forall integer j; i < j < length ==> sortedArray[i] <= sortedArray[j];
+    with open(f"{ABS_PATH}/c/3.c", "r") as f:
+      EXAMPLE_CODE3 = f.read()
 
-  // ghost variable for specification: whether the value is in the array
-  assigns \\nothing;
-  ensures (\exists integer i; 0 <= i < length && sortedArray[i] == value) 
-           <==> (0 <= \\result < length);
-  ensures !(\exists integer i; 0 <= i < length && sortedArray[i] == value) 
-           <==> (\\result == -1);
-*/
-int binary_search(const int* sortedArray, int length, int value) {
-    if (value < sortedArray[0]) return -1;
-    if (value > sortedArray[length - 1]) return -1;
+    with open(f"{ABS_PATH}/c/3_spec.c", "r") as f:
+      EXAMPLE_SPEC3 = f.read()
+      EXAMPLE_SPEC3 = "```\n" + EXAMPLE_SPEC3 + "\n```\n"
 
-    int lo = 0;
-    int hi = length - 1;
+    EXAMPLE_LTM_RESPONSE3 = """
+Let's break down the problem step by step and analyze the formal specification of the `func` method.
 
-    /*@
-      loop invariant 0 <= lo <= hi + 1 && hi < length;
-      loop invariant \\exists integer i; 0 <= i < length ==> 
-                       (sortedArray[i] == value) ==> (lo <= i <= hi);
-      loop invariant \\forall integer i; 0 <= i < lo ==> sortedArray[i] < value;
-      loop invariant \\forall integer i; hi < i < length ==> value < sortedArray[i];
-      loop assigns lo, hi;
-      loop variant hi - lo + 1;
-    */
-    while (lo <= hi) {
-        int mid = lo + (hi - lo) / 2;
-        if (sortedArray[mid] == value) {
-            return mid;
-        } else if (sortedArray[mid] < value) {
-            lo = mid + 1;
-        } else {
-            hi = mid - 1;
-        }
-    }
+---
 
-    return -1;
-}
+### 1. **Weakest Preconditions**
 
-```
-"""
+The weakest preconditions for the `func` method are:
+
+* The input integer `n` must be strictly greater than 0, i.e., `n > 0`, to ensure that the loop body is potentially executed and avoids vacuous reasoning.
+* The memory block pointed to by `a`, specifically from `a[0]` to `a[n-1]`, must be valid for reading, i.e., `\valid_read(a + (0..n-1))`. This ensures that array elements can be safely accessed during evaluation of conditions.
+
+---
+
+### 2. **Strongest Postconditions**
+
+The strongest postconditions for the `func` method are:
+
+* For all valid indices `k` such that `0 <= k < n` and `k` is even (`k % 2 == 0`), the array value `a[k]` is guaranteed to be `0`. Formally,
+  `\forall integer k; (0 <= k < n) && (k % 2 == 0) ==> a[k] == 0`.
+  This asserts that all even-indexed elements in the array are set to zero after the function executes.
+
+---
+
+### 3. **Necessary Specifications**
+
+* **Assertions**: No explicit `assert` statements are used, but the loop invariants implicitly function as runtime properties to verify correct updates during loop iterations.
+
+* **Loop Invariants**:
+
+  * `0 <= i <= n`
+    → Ensures the loop index remains within bounds throughout the execution.
+  * `\forall integer k; (0 <= k < i) && (k % 2 == 0) ==> a[k] == 0`
+    → Maintains that all even indices already visited by the loop have been correctly set to `0`.
+  * `\forall integer k; (0 <= k < i) && (k % 2 == 1) ==> a[k] == a[k]`
+    → Trivially preserves the values of odd-indexed elements. While redundant logically (`a[k] == a[k]` is always true), it implicitly asserts no changes are required for odd indices.
+
+* **Assumptions**:
+
+  * `n > 0` ensures the loop runs at least once, making the function non-trivial.
+  * `\valid_read(a + (0..n-1))` allows safe evaluation of conditions, particularly `a[k]` for the loop invariants and postconditions.
+    Notably, the function **writes** to `a`, so a stronger `\valid(a + (0..n-1))` would be more appropriate in practice. The current annotation assumes read validity, possibly due to a verification context focusing on logical correctness rather than memory safety.
+
+* **Ranking Functions**:
+
+  * The loop variant is implicit but follows from the loop condition `i < n`. Since `i` increments by 1 on each iteration and starts from 0, it strictly increases and is bounded above by `n`, ensuring termination.
+
+---
+
+  ### SPECIFICATION
+
+  """ + EXAMPLE_SPEC3
 
 _UNSUPPORTED_SUMNUMPRODUCT_QUANTIFIER_DESC = """
 OpenJML does not fully support JML's inductive quantifiers like \\num_of, \\sum, and \\product in specifications. These operators require inductive reasoning (e.g., counting elements, summing values over a range, or computing products), which is difficult for SMT solvers (the engines behind OpenJML and most of deductive verification tools) to handle.
