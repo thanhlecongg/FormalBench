@@ -108,64 +108,33 @@ class CExample:
       EXAMPLE_SPEC2 = "```\n" + EXAMPLE_SPEC2 + "\n```\n"
 
     EXAMPLE_LTM_RESPONSE2 = """
-Let's break down the problem step by step and analyze the formal specification of the `bubbleSort` function.
+Let's break down the problem step by step and generate the ACSL specifications for the `bubbleSort` function.
+
+### 1. **Preconditions** (`requires`):
+The weakest preconditions for the `bubbleSort` function are:
+- Ensures the array `a` points to a valid memory block of at least `n` elements. Since the function accesses and modifies all elements of `a`, this condition is necessary for memory safety.
+- Assumes that the input array is non-empty. This prevents undefined behavior due to iteration over zero-length arrays.
 
 ---
 
-### 1. **Weakest Preconditions**
-
-The weakest preconditions for the `bubbleSort` method are:
-* The pointer `a` must reference a valid memory block of at least `n` elements, i.e., `\valid(a + (0..n-1))`.
-* The array length `n` must be strictly greater than 0, i.e., `n > 0`. This ensures the sorting logic has at least one element to work with and avoids undefined behavior such as underflow in the loop bounds.
-
----
-
-### 2. **Strongest Postconditions**
-
-The strongest postconditions for the `bubbleSort` method are:
-* The array is sorted in non-decreasing order, i.e.,
-  `\forall integer i, j; 0 <= i <= j <= n-1 ==> a[i] <= a[j]`.
-  This condition ensures that, after execution, every earlier element in the array is less than or equal to every later element, confirming that the array is correctly sorted.
-
----
+### 2. **Postconditions** (`ensures`)
+The strongest postconditions for the `bubbleSort` function are:
+- Ensures that the array is sorted in non-decreasing order after execution by comparing all pairs of indices to ensure the ordering property.
 
 ### 3. **Necessary Specifications**
 
-* **Assertions**: While no explicit `assert` statements are included, the loop invariants serve as implicit assertions to verify intermediate correctness at each loop iteration.
+- **Outer Loop**
+  - Ensure that that the loop variable `i` stays within the appropriate range of array indices.
+  - Ensure the segment from index `i` to `n - 1` is sorted in non-decreasing order. This invariant becomes stronger as the algorithm progresses.
+  - Ensures transitional order: the maximum value in the unsorted prefix does not exceed the minimum value in the sorted suffix.
+  - Declares which variables and memory regions may be modified by the loop body.
+  - Specifies a decreasing variant ensures that the loop will eventually terminate.
 
-* **Loop Invariants**:
-
-  * **Outer Loop (`i` loop):**
-
-    * `\forall integer p, q; i <= p <= q <= n-1 ==> a[p] <= a[q]`
-      → Ensures the suffix `a[i..n-1]` is sorted.
-    * `\forall integer p, q; 0 <= p < i+1 == q <= n-1 ==> a[p] <= a[q]`
-      → Ensures elements before and after the current `i` boundary respect the sorted order.
-    * `0 <= i < n`
-      → Maintains the loop variable within bounds.
-  * **Inner Loop (`j` loop):**
-
-    * `0 <= j <= i < n`
-      → Bounds check for the inner loop variable.
-    * `\forall integer k; 0 <= k <= j ==> a[k] <= a[j]`
-      → Describes the “bubbling up” of the maximum element toward the right.
-    * `\forall integer p, q; 0 <= p < i+1 == q <= n-1 ==> a[p] <= a[q]`
-      → Maintains that elements prior to `i+1` are no greater than those following it.
-
-* **Assumptions**:
-
-  * As previously noted, the assumptions are:
-
-    * `\valid(a + (0..n-1))`
-    * `n > 0`
-      These are required to ensure safe memory access and meaningful loop bounds.
-
-* **Ranking Functions**:
-
-  * For the **outer loop**: `i`
-    → Decreases each iteration (`i--`), proving termination.
-  * For the **inner loop**: `i - j`
-    → Since `j` increases while `i` remains fixed, this difference decreases, ensuring the loop terminates.
+- **Inner Loop**
+  - Ensures the loop variable `j` stays within bounds during iteration over the unsorted section.
+  - Reiterates that ordering between the unsorted and sorted segments is preserved, even as elements are being swapped.
+  - Specifies modifications to variables and memory within the active segment.
+  - Specifies a decreasing variant ensures that the loop will eventually terminate.
 
 ---
 
@@ -181,55 +150,40 @@ The strongest postconditions for the `bubbleSort` method are:
       EXAMPLE_SPEC3 = "```\n" + EXAMPLE_SPEC3 + "\n```\n"
 
     EXAMPLE_LTM_RESPONSE3 = """
-Let's break down the problem step by step and analyze the formal specification of the `func` method.
+Let's break down the problem step by step and generate the ACSL specifications for the `checkArrayEquality` function.
 
 ---
 
-### 1. **Weakest Preconditions**
+### 1. **Preconditions** (`requires`):
 
-The weakest preconditions for the `func` method are:
-
-* The input integer `n` must be strictly greater than 0, i.e., `n > 0`, to ensure that the loop body is potentially executed and avoids vacuous reasoning.
-* The memory block pointed to by `a`, specifically from `a[0]` to `a[n-1]`, must be valid for reading, i.e., `\valid_read(a + (0..n-1))`. This ensures that array elements can be safely accessed during evaluation of conditions.
+The weakest preconditions for the `checkArrayEquality` function are:
+- Guarantees that the function is not invoked on an empty array, thereby avoiding iteration over an invalid range.
+- Ensures that all elements of the input array `a` within the index range `[0, n-1]` are readable.
+- Ensures that all elements of the array `b` within the same index range are also readable.
+- Ensure that this function does not modify any memory location, which reflects its observational (pure) nature.
 
 ---
 
-### 2. **Strongest Postconditions**
+### 2. **Postconditions** (`ensures`):
 
-The strongest postconditions for the `func` method are:
+The strongest postconditions for the `checkArrayEquality` function are partitioned into *behaviors*, depending on the equality of the input arrays:
 
-* For all valid indices `k` such that `0 <= k < n` and `k` is even (`k % 2 == 0`), the array value `a[k]` is guaranteed to be `0`. Formally,
-  `\forall integer k; (0 <= k < n) && (k % 2 == 0) ==> a[k] == 0`.
-  This asserts that all even-indexed elements in the array are set to zero after the function executes.
+- **Behavior `equal`**: If all elements of `a` and `b` are pairwise equal across the entire index range so that the function returns `1` to signify equality.
+- **Behavior `not_equal`**: If there exists at least one index where the corresponding elements differ, so that the function returns `0` to signify inequality.
+
+These behaviors are mutually exclusive and collectively exhaustive, meaning they cover all possible input scenarios without overlap.
 
 ---
 
 ### 3. **Necessary Specifications**
 
-* **Assertions**: No explicit `assert` statements are used, but the loop invariants implicitly function as runtime properties to verify correct updates during loop iterations.
-
-* **Loop Invariants**:
-
-  * `0 <= i <= n`
-    → Ensures the loop index remains within bounds throughout the execution.
-  * `\forall integer k; (0 <= k < i) && (k % 2 == 0) ==> a[k] == 0`
-    → Maintains that all even indices already visited by the loop have been correctly set to `0`.
-  * `\forall integer k; (0 <= k < i) && (k % 2 == 1) ==> a[k] == a[k]`
-    → Trivially preserves the values of odd-indexed elements. While redundant logically (`a[k] == a[k]` is always true), it implicitly asserts no changes are required for odd indices.
-
-* **Assumptions**:
-
-  * `n > 0` ensures the loop runs at least once, making the function non-trivial.
-  * `\valid_read(a + (0..n-1))` allows safe evaluation of conditions, particularly `a[k]` for the loop invariants and postconditions.
-    Notably, the function **writes** to `a`, so a stronger `\valid(a + (0..n-1))` would be more appropriate in practice. The current annotation assumes read validity, possibly due to a verification context focusing on logical correctness rather than memory safety.
-
-* **Ranking Functions**:
-
-  * The loop variant is implicit but follows from the loop condition `i < n`. Since `i` increments by 1 on each iteration and starts from 0, it strictly increases and is bounded above by `n`, ensuring termination.
+- **Loop Annotations**: The function employs a `for` loop to iterate over the elements of the arrays. The associated loop specifications are as follows:
+  - Ensures the loop index `i` always remains within valid bounds throughout execution.
+  - Specifies that the only variable modified during each iteration is the loop index `i`.
 
 ---
 
-  ### SPECIFICATION
+### SPECIFICATION
 
   """ + EXAMPLE_SPEC3
 

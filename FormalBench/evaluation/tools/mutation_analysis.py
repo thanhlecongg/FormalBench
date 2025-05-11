@@ -257,7 +257,7 @@ class MullMutantGenerator(MutantGenerator):
         cmd = "clang-12 -fexperimental-new-pass-manager \
                         -fpass-plugin=/usr/lib/mull-ir-frontend-12 \
                         -g -grecord-command-line \
-                        {} -o output".format(path_in_container)
+                        {} -o ./output".format(path_in_container)
         output = execute_command_in_container(self.container, cmd)
         output += execute_command_in_container(
             self.container,
