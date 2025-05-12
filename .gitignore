@@ -9,3 +9,5 @@ test*.py
 tests/testcases/specs/Demo.java
 tests/testcases/specs/demo.c
 experiments/*
+*.sh
+Dockerfile

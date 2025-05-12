@@ -77,7 +77,7 @@ def experiment(
         if os.path.exists(output_path) and os.path.exists(spec_path):
             spec = open(spec_path, "r").read()
             analysis_result = json.load(open(output_path, "r"))
-            if len(analysis_result["analysis_results"]) > 0 and len(spec) > 0:
+            if "analysis_results" in analysis_result and len(analysis_result["analysis_results"]) > 0 and len(spec) > 0:
                 print("Skipping: {}".format(class_name))
                 continue   
             
@@ -86,7 +86,8 @@ def experiment(
             json.dump(results, f)
         
         with open(spec_path, "w") as f:
-            f.write("// {}\n".format(results["status"]))
+            if "status" in results:
+                f.write("// {}\n".format(results["status"]))
             if results["spec"] is not None:
                 f.write(results["spec"])
             else:

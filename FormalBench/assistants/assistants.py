@@ -71,7 +71,7 @@ def create_llm(model_name: str):
             ),
         )
         return ChatHuggingFace(llm=llm)
-    elif model_name in ["Qwen/Qwen2.5-Coder-32B-Instruct", "codellama/CodeLlama-34b-Instruct-hf", "deepseek-ai/deepseek-coder-33b-instruct"]:
+    elif model_name in ["Qwen/Qwen2.5-Coder-32B-Instruct", "codellama/CodeLlama-34b-Instruct-hf", "deepseek-ai/deepseek-coder-33b-instruct", "deepseek-ai/DeepSeek-R1-Distill-Llama-70B", "deepseek-ai/DeepSeek-R1-Distill-Qwen-32B", "Qwen/Qwen2.5-32B", "Qwen/Qwen2.5-72B", "meta-llama/Meta-Llama-3-70B-Instruct"]:
         quantization_config = BitsAndBytesConfig(
             load_in_4bit=True,
             bnb_4bit_quant_type="nf4",
@@ -113,6 +113,13 @@ def get_specs_from_response(response: str, language: str) -> str:
             ### Using CodeQwen
             response = response.split("<|im_start|>assistant")[-1]
             response = response.split("<|im_end|>")[0]
+    
+        
+    if "<｜Assistant｜><think>" in response:
+        ### Using DeepSeek-r1
+        response = response.split("<｜Assistant｜><think>")[-1]
+        response = response.split("<｜/think｜>")[0]
+    
     if "### SPECIFICATION" in response:
         response = response.split("### SPECIFICATION")[-1]
     

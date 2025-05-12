@@ -14,4 +14,5 @@ os.environ["LANGSMITH_PROJECT"] = os.getenv("LANGSMITH_PROJECT")
 os.environ["LANGCHAIN_TRACING_V2"] = "false"
 os.environ["DEEPSEEK_API_KEY"] = os.getenv("DEEPSEEK_API_KEY")
 os.environ["ANTHROPIC_API_KEY"] = os.getenv("ANTHROPIC_API_KEY")
+os.environ["HF_TOKEN"] = os.getenv("HF_TOKEN")
 print(os.environ["LANGCHAIN_TRACING_V2"])

@@ -62,10 +62,11 @@ class SpecInfer():
         os.makedirs(self.tmp_dir, exist_ok=True)
                 
         if language == "java":
-            if use_docker:
-                self.verifier = create_verifier("OpenJML")
-            else:
-                self.verifier = create_verifier("OpenJMLWithoutDocker")
+            if workflow != "only_gen":
+                if use_docker:
+                    self.verifier = create_verifier("OpenJML")
+                else:
+                    self.verifier = create_verifier("OpenJMLWithoutDocker")
             
             if prompt_type == "two_shot":
                 self.gen_sys_mes = (
@@ -94,8 +95,9 @@ class SpecInfer():
             self.gen_query = "Please generate JML specifications for the provided Java code." 
             self.example_set = JavaExample
         elif language == "c":
-            assert use_docker, "FramaC without docker is not implemented yet. Please use FramaC with docker."
-            self.verifier = create_verifier("FramaC")
+            if workflow != "only_gen":
+                assert use_docker, "FramaC without docker is not implemented yet. Please use FramaC with docker."
+                self.verifier = create_verifier("FramaC")
             
             if prompt_type == "two_shot":
                 self.gen_sys_mes = (

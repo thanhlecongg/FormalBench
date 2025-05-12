@@ -44,7 +44,7 @@ To use LLMs and langsmith (optional), please setup the enviroment file at `Forma
 OPENAI_API_KEY=<OpenAI API Key>
 DEEPSEEK_API_KEY = <DeepSeek API Key>
 ANTHROPIC_API_KEY = <Anthropic API Key>
-
+HF_TOKEN=<HunggingFace Access Token>
 ### Optional
 LANGSMITH_TRACING=true
 LANGSMITH_ENDPOINT="https://api.smith.langchain.com"
