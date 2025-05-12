@@ -95,7 +95,7 @@ def test_consistency():
     try:
         eval_consistency("", "", language="python")
     except ValueError as e:
-        assert str(e) == "Unknown language: python. Please select ['java']"
+        assert str(e) == "Unknown language: python. Please select ['java', 'c']"
     except:
         assert False
         
@@ -121,6 +121,6 @@ def test_completeness():
     try:
         eval_completeness("tests/testcases/results/specs", "tests/testcases/results/completeness", language="python")
     except ValueError as e:
-        assert str(e) == "Unsupported language: python. Please select from ['java']"
+        assert str(e) == "Unsupported language: python. Please select from ['java', 'c']"
     except:
         assert False
