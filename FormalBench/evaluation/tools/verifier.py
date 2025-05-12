@@ -234,7 +234,6 @@ class OpenJMLVerifierWithoutDocker(Verifier):
         ) -> Tuple[int, str]:
         
         abs_path = os.path.abspath(path)
-        
         command = "{} --esc --prover=cvc4 --nullable-by-default --esc-max-warnings 1 {}".format(self.exec_path, abs_path)
         print("Executing command: {}".format(command))
         output = execute_command(command, timeout)
