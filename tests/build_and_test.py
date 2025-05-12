@@ -107,7 +107,7 @@ def test_consistency():
         assert False
         
 def test_completeness():
-    avg_coverage, coverage_results, inconsistent_instances = eval_completeness("tests/testcases/results/specs", "tests/testcases/results/completeness", timeout=20)
+    avg_coverage, coverage_results, inconsistent_instances = eval_completeness("tests/testcases/results/specs", "tests/testcases/results/analysis_results", "tests/testcases/results/completeness", timeout=20)
     assert len(inconsistent_instances) == 3, "Three inconsistent specifications should be found"
     assert avg_coverage == 1.0, "Average coverage should be 1.0"
     
