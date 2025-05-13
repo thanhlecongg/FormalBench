@@ -57,20 +57,22 @@ def eval_consistency(
             try:
                 with open(analysis_path, "r") as f:
                     result_dict = json.load(f)
+                    if re_evaluate or "analysis_results" not in result_dict:
+                        with open(spec_path, "r") as f:
+                            spec = f.read()
+                        n_errors, output = verifier.verify(spec_path, timeout=timeout)
+                        if "analysis_results" in result_dict and isinstance(result_dict["analysis_results"][0], list):
+                            result_dict["analysis_results"][-1] = [n_errors, output, spec]
+                        else:
+                            result_dict["analysis_results"] = [n_errors, output, spec]
+                        with open(analysis_path, "w") as f:
+                            json.dump(result_dict, f)
+                    
                     if isinstance(result_dict["analysis_results"][0], list):
                         n_errors, output, _ = result_dict["analysis_results"][-1]
                     else:
                         n_errors, output, _ = result_dict["analysis_results"]
-                if re_evaluate:
-                    with open(spec_path, "r") as f:
-                        spec = f.read()
-                    n_errors, output = verifier.verify(spec_path, timeout=timeout)
-                    if isinstance(result_dict["analysis_results"][0], list):
-                        result_dict["analysis_results"][-1] = [n_errors, output, spec]
-                    else:
-                        result_dict["analysis_results"] = [n_errors, output, spec]
-                    with open(analysis_path, "w") as f:
-                        json.dump(result_dict, f)
+                
             except:
                  raise ValueError("Analysis result file is corrupted")
         else:
