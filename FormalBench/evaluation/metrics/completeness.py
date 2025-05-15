@@ -2,6 +2,8 @@ from .. import create_verifier, Verifier, create_mutator, MutantGenerator
 import os
 import concurrent.futures
 from typing import Tuple, List, Optional
+import json
+from tqdm import tqdm
 
 class CoverageScore():
 
@@ -13,12 +15,20 @@ class CoverageScore():
     def measure_completeness(
             self, 
             path: str, 
+            analysis_path: str,
             save_dir: str,
             n_proc: int, 
             timeout: int
         ) -> Tuple[Optional[float], Optional[int], Optional[int]]:
-        
-        results, n_mutants = self.mutation_analysis(path, save_dir, n_proc, timeout)
+
+
+        results, n_mutants = self.mutation_analysis(
+            path = path,
+            analysis_path = analysis_path,
+            save_dir = save_dir,
+            n_proc = n_proc,
+            timeout = timeout
+        )
 
         if n_mutants is None:
             print("[WARNING] No mutants generated. Skipping !!!")
@@ -62,6 +72,7 @@ class CoverageScore():
     def mutation_analysis(
             self, 
             path: str, 
+            analysis_path: str,
             save_dir: str,
             n_proc: int, 
             timeout: int
@@ -95,15 +106,25 @@ class CoverageScore():
                 return results, n_mutants
 
         results = {}
-        f = open(result_path, "w")
-        n_errors, _ = self.verifier.verify(path=path, basedir="", timeout=timeout)
         
+        n_errors = None
+        assert os.path.exists(analysis_path)
+        with open(analysis_path, "r") as f:
+            result_dict = json.load(f)
+        assert "analysis_results" in result_dict, "Analysis results not found in the file: {}. Please run consistency evaluation first.".format(analysis_path)
+        if isinstance(result_dict["analysis_results"][0], list):
+            n_errors, output, _ = result_dict["analysis_results"][-1]
+        else:
+            n_errors, output, _ = result_dict["analysis_results"]
+        assert n_errors is not None, "Analysis results not found in the file: {}. Please run consistency evaluation first.".format(analysis_path)
+        
+        f = open(result_path, "w")    
         f.write(f"Original: {n_errors}\n")
         
         results["Original"] = n_errors
         
         if n_errors != 0:
-            print("[WARNING] Original specification is unsound. Skipping !!!")
+            print("Original specification is unsound. Skipping !!!")
             f.close()
             return results, n_mutants
         assert n_errors == 0, "Original specification should be verified: {}".format(
@@ -140,40 +161,46 @@ class CoverageScore():
         return mutant, n_errors
     
 def eval_completeness(
-        data_dir: str,
+        spec_dir: str,
+        analysis_dir: str,
         save_dir: str,
-        verifier_name: str = "OpenJML",
-        verifier_version: int = 21,
         n_proc: int = 8,
         language: str = "java", 
         data_ids: Optional[str] = None,
         timeout: int = 300
     ) -> Tuple[float, List[float], List[str]]:
     
-    assert os.path.exists(data_dir), "Data directory not found: {}".format(data_dir)
+    assert os.path.exists(spec_dir), "Data directory not found: {}".format(spec_dir)
     
     os.makedirs(save_dir, exist_ok=True)
     if language == "java":
-        assert verifier_name == "OpenJML", "Only OpenJML is supported for Java programs"
         ending = ".java"
-        verifier = create_verifier(verifier_name, verifier_version)
+        verifier = create_verifier("OpenJML", 21)
         mutator = create_mutator("Major")
+    elif language == "c":
+        ending = ".c"
+        verifier = create_verifier("FramaC")
+        mutator = create_mutator("Mull")
     else:
-        raise ValueError("Unsupported language: {}. Please select from ['java']".format(language))
-    
+        raise ValueError("Unsupported language: {}. Please select from ['java', 'c']".format(language))
+
     if data_ids is None:
-        benchmarks = os.listdir(data_dir)
+        benchmarks = os.listdir(spec_dir)
         benchmarks = [file_name[:-len(ending)] for file_name in benchmarks if file_name.endswith(ending)]
     else:
         benchmarks = data_ids.split(",")
 
     coverage_results = []
     inconsistent_instances = []
-    for b in benchmarks:
+    for b in tqdm(benchmarks):
         coverage_score = CoverageScore(verifier, mutator)
         coverage, survived, total = coverage_score.measure_completeness(
-            os.path.join(data_dir, f"{b}{ending}"),
-            os.path.join(save_dir, b), n_proc, timeout)
+            path = os.path.join(spec_dir, f"{b}{ending}"),
+            analysis_path= os.path.join(analysis_dir, f"{b}.json"),
+            save_dir= os.path.join(save_dir, b),
+            n_proc= n_proc,
+            timeout= timeout
+        )
         if coverage is None:
             inconsistent_instances.append(b)
             continue

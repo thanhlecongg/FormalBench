@@ -30,6 +30,20 @@ def create_llm(model_name: str):
         return ChatOpenAI(
             model="o1-mini",
         )
+    elif model_name == "o3-mini":
+        return ChatOpenAI(
+            model="o3-mini",
+        )
+    elif model_name == "o3-mini-high":
+        return ChatOpenAI(
+            model="o3-mini",
+            reasoning_effort="high"
+        )
+    elif model_name == "o3-mini-low":
+        return ChatOpenAI(
+            model="o3-mini",
+            reasoning_effort="low",
+        )
     elif model_name == "claude":
         return ChatAnthropic(
             model="claude-3-5-sonnet-20241022",
@@ -57,7 +71,7 @@ def create_llm(model_name: str):
             ),
         )
         return ChatHuggingFace(llm=llm)
-    elif model_name in ["Qwen/Qwen2.5-Coder-32B-Instruct", "codellama/CodeLlama-34b-Instruct-hf", "deepseek-ai/deepseek-coder-33b-instruct"]:
+    elif model_name in ["Qwen/Qwen2.5-Coder-32B-Instruct", "codellama/CodeLlama-34b-Instruct-hf", "deepseek-ai/deepseek-coder-33b-instruct", "deepseek-ai/DeepSeek-R1-Distill-Llama-70B", "deepseek-ai/DeepSeek-R1-Distill-Qwen-32B", "Qwen/Qwen2.5-32B", "Qwen/Qwen2.5-72B", "meta-llama/Meta-Llama-3-70B-Instruct"]:
         quantization_config = BitsAndBytesConfig(
             load_in_4bit=True,
             bnb_4bit_quant_type="nf4",
@@ -83,10 +97,29 @@ def create_llm(model_name: str):
         raise ValueError(f"Unsupported model: {model_name}")
         
 def get_specs_from_response(response: str, language: str) -> str:
+    if "---------------" in response:
+        response_lines = response.split("\n")
+        new_response = []
+        is_start = False
+        for line in response_lines:
+            if line.startswith("---------------"):
+                is_start = not is_start
+                continue
+            if is_start:
+                new_response.append(line)
+        response = "\n".join(new_response)
+    
     if "<|im_start|>assistant" in response:
             ### Using CodeQwen
             response = response.split("<|im_start|>assistant")[-1]
             response = response.split("<|im_end|>")[0]
+    
+        
+    if "<｜Assistant｜><think>" in response:
+        ### Using DeepSeek-r1
+        response = response.split("<｜Assistant｜><think>")[-1]
+        response = response.split("<｜/think｜>")[0]
+    
     if "### SPECIFICATION" in response:
         response = response.split("### SPECIFICATION")[-1]
     
@@ -352,17 +385,10 @@ class FixingAssistant(Assistant):
             ])
 
        
-    def __init__(self, model_name: str, language: str = "java", prompt_type: str = "SpecGen"):
+    def __init__(self, model_name: str, language: str = "java"):
         self.llm = create_llm(model_name)
         self.language = language
         self.prompt_template = self._create_prompt(model_name)
-
-    def _augment_error_info(self, state):
-        if self.prompt_type == "SpecGen":
-            curr_error = state["curr_error"]
-            assert curr_error is not None, "No error to fix"
-        
-        return state        
         
     def __call__(self, state: State, config: RunnableConfig = None):
         n_errors, output, last_spec = state["analysis_results"][-1]

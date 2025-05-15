@@ -1,72 +1,23 @@
-EXAMPLE_CODE1 = """
-public class SumMax {
+import FormalBench
 
-    void sumMax(int[] a) {
-      int sum = 0;
-      int max = a[0];
-  
-      for (int i=0; i<a.length; i++) {
-        sum += a[i];
-        if (max < a[i]) max = a[i];
-      }
-    }
-  
-}
-"""
+ABS_PATH = FormalBench.__path__[0] + "/assistants/examples"
+class JavaExample:
+    with open(f"{ABS_PATH}/java/1.java", "r") as f:
+      EXAMPLE_CODE1 = f.read()
 
-EXAMPLE_SPEC1 = """
-```
-public class SumMax {
+    with open(f"{ABS_PATH}/java/1_spec.java", "r") as f:
+      EXAMPLE_SPEC1 = f.read()
+      EXAMPLE_SPEC1 = "```\n" + EXAMPLE_SPEC1 + "\n```\n"
 
-    //@ requires a != null;
-    //@ requires a.length > 0;
-    void sumMax(int[] a) {
-      int sum = 0;
-      int max = a[0];
-  
-      //@ loop_invariant 0 <= i <= a.length;
-      //@ loop_invariant sum <= \\count * max; 
-      for (int i=0; i < a.length; i++) {
-        //@ assume Integer.MIN_VALUE <= sum + a[i] <= Integer.MAX_VALUE; 
-        sum += a[i];
-        if (max < a[i]) max = a[i];
-      }
-  }
-  
-}
-```
-"""
+    with open(f"{ABS_PATH}/java/2.java", "r") as f:
+      EXAMPLE_CODE2 = f.read()
+    
+    with open(f"{ABS_PATH}/java/2_spec.java", "r") as f:
+      EXAMPLE_SPEC2 = f.read()
+      EXAMPLE_SPEC2 = "```\n" + EXAMPLE_SPEC2 + "\n```\n"
 
-EXAMPLE_CODE2 = """
 
-public class Abs {
-	public int Abs(int num) {
-		if (num < 0)
-			return -num;
-		else
-			return num;
-	}
-
-}
-"""
-
-EXAMPLE_SPEC2 = """
-```
-public class Abs {
-	//@ requires num != Integer.MIN_VALUE;
-	//@ ensures \\result == ((num < 0) ? -num : num);
-	public int Abs(int num) {
-		if (num < 0)
-			return -num;
-		else
-			return num;
-	}
-
-}
-```
-"""
-
-EXAMPLE_LTM_RESPONSE2 = """
+    EXAMPLE_LTM_RESPONSE2 = """
 Let's break down the problem step by step and generate the JML specifications for the `Abs` class.
 
 ---
@@ -94,83 +45,16 @@ The strongest postconditions for the `Abs` method are:
 
 ### SPECIFICATION
 
-```
-public class Abs {
-	//@ requires num != Integer.MIN_VALUE;
-	//@ ensures \\result == ((num < 0) ? -num : num);
-	public int Abs(int num) {
-		if (num < 0)
-			return -num;
-		else
-			return num;
-	}
+""" + EXAMPLE_SPEC2
 
-}
-```
-"""
+    with open(f"{ABS_PATH}/java/3.java", "r") as f:
+      EXAMPLE_CODE3 = f.read()
+      
+    with open(f"{ABS_PATH}/java/3_spec.java", "r") as f:
+      EXAMPLE_SPEC3 = f.read()
+      EXAMPLE_SPEC3 = "```\n" + EXAMPLE_SPEC3 + "\n```\n"
 
-EXAMPLE_CODE3 = """
-public class BinarySearch {
-
-    public static int search(int[] sortedArray, int value) {
-        
-        if (value < sortedArray[0]) return -1;
-        if (value > sortedArray[sortedArray.length-1]) return -1;
-        int lo = 0;
-        int hi = sortedArray.length-1;
-        
-        while (lo <= hi) {
-            int mid = lo + (hi-lo)/2;
-            if (sortedArray[mid] == value) {
-                return mid;
-            } else if (sortedArray[mid] < value) {
-                lo = mid+1;
-            } else {
-                hi = mid-1;
-            }
-        }
-        return -1;
-    }
-}
-"""
-EXAMPLE_SPEC3 = """
-public class BinarySearch {
-    
-    //@ requires sortedArray != null && 0 < sortedArray.length < Integer.MAX_VALUE;
-    //@ requires \\forall int i; 0 <= i < sortedArray.length; \\forall int j; i < j < sortedArray.length; sortedArray[i] <= sortedArray[j];
-    //@ old boolean containsValue = (\\exists int i; 0 <= i < sortedArray.length; sortedArray[i] == value);
-    //@ ensures containsValue <==> 0 <= \\result < sortedArray.length;
-    //@ ensures !containsValue <==> \\result == -1;
-    //@ pure
-    public static int search(int[] sortedArray, int value) {
-        
-        //@ ghost boolean containsValue = (\\exists int i; 0 <= i < sortedArray.length; sortedArray[i] == value);
-        if (value < sortedArray[0]) return -1;
-        if (value > sortedArray[sortedArray.length-1]) return -1;
-        int lo = 0;
-        int hi = sortedArray.length-1;
-        
-        //@ loop_invariant 0 <= lo < sortedArray.length && 0 <= hi < sortedArray.length;
-        //@ loop_invariant containsValue ==> sortedArray[lo] <= value <= sortedArray[hi];
-        //@ loop_invariant \\forall int i; 0 <= i < lo; sortedArray[i] < value;
-        //@ loop_invariant \\forall int i; hi < i < sortedArray.length; value < sortedArray[i];
-        //@ loop_decreases hi - lo;
-        while (lo <= hi) {
-            int mid = lo + (hi-lo)/2;
-            if (sortedArray[mid] == value) {
-                return mid;
-            } else if (sortedArray[mid] < value) {
-                lo = mid+1;
-            } else {
-                hi = mid-1;
-            }
-        }
-        return -1;
-    }
-}
-"""
-
-EXAMPLE_LTM_RESPONSE3 = """
+    EXAMPLE_LTM_RESPONSE3 = """
 Let's break down the problem step by step and generate the JML specifications for the `BinarySearch` class.
 
 ---
@@ -185,63 +69,123 @@ The weakest preconditions for the `search` method are:
 
 ### 2. **Strongest Postconditions**
 The strongest postconditions for the `Abs` method are:
-   - If the `value` exists in the array, the method returns the index of the `value` in the array, and the index is within the bounds of the array.
-   - If the `value` does not exist in the array, the method returns `-1`.
+  - If the `value` exists in the array, the method returns the index of the `value` in the array, and the index is within the bounds of the array.
+  - If the `value` does not exist in the array, the method returns `-1`.
 
 ---
 
 ### 3. **Necessary Specifications**
-   - **Loop Invariants**:
-     - The indices `lo` and `hi` remain within the bounds of the array.
-     - If the `value` exists in the array, it must lie between `sortedArray[lo]` and `sortedArray[hi]`.
-     - All elements to the left of `lo` are less than `value`.
-     - All elements to the right of `hi` are greater than `value`.
-   - **Ranking Functions**:
-     - The difference `hi - lo` decreases with each iteration, ensuring termination.
-   - **Assertions**:
-     - After the loop, if the `value` is not found, the method returns `-1`.
+  - **Loop Invariants**:
+    - The indices `lo` and `hi` remain within the bounds of the array.
+    - If the `value` exists in the array, it must lie between `sortedArray[lo]` and `sortedArray[hi]`.
+    - All elements to the left of `lo` are less than `value`.
+    - All elements to the right of `hi` are greater than `value`.
+  - **Ranking Functions**:
+    - The difference `hi - lo` decreases with each iteration, ensuring termination.
+  - **Assertions**:
+    - After the loop, if the `value` is not found, the method returns `-1`.
 
 ---
 
 ### SPECIFICATION
 
-```
-public class BinarySearch {
-    
-    //@ requires sortedArray != null && 0 < sortedArray.length < Integer.MAX_VALUE;
-    //@ requires \\forall int i; 0 <= i < sortedArray.length; \\forall int j; i < j < sortedArray.length; sortedArray[i] <= sortedArray[j];
-    //@ old boolean containsValue = (\\exists int i; 0 <= i < sortedArray.length; sortedArray[i] == value);
-    //@ ensures containsValue <==> 0 <= \\result < sortedArray.length;
-    //@ ensures !containsValue <==> \\result == -1;
-    //@ pure
-    public static int search(int[] sortedArray, int value) {
-        
-        //@ ghost boolean containsValue = (\\exists int i; 0 <= i < sortedArray.length; sortedArray[i] == value);
-        if (value < sortedArray[0]) return -1;
-        if (value > sortedArray[sortedArray.length-1]) return -1;
-        int lo = 0;
-        int hi = sortedArray.length-1;
-        
-        //@ loop_invariant 0 <= lo < sortedArray.length && 0 <= hi < sortedArray.length;
-        //@ loop_invariant containsValue ==> sortedArray[lo] <= value <= sortedArray[hi];
-        //@ loop_invariant \\forall int i; 0 <= i < lo; sortedArray[i] < value;
-        //@ loop_invariant \\forall int i; hi < i < sortedArray.length; value < sortedArray[i];
-        //@ loop_decreases hi - lo;
-        while (lo <= hi) {
-            int mid = lo + (hi-lo)/2;
-            if (sortedArray[mid] == value) {
-                return mid;
-            } else if (sortedArray[mid] < value) {
-                lo = mid+1;
-            } else {
-                hi = mid-1;
-            }
-        }
-        return -1;
-    }
-}
-```
-"""
+  """ + EXAMPLE_SPEC3
+
+
+class CExample:
+    with open(f"{ABS_PATH}/c/1.c", "r") as f:
+      EXAMPLE_CODE1 = f.read()
+
+    with open(f"{ABS_PATH}/c/1_spec.c", "r") as f:
+      EXAMPLE_SPEC1 = f.read()
+      EXAMPLE_SPEC1 = "```\n" + EXAMPLE_SPEC1 + "\n```\n"
+
+    with open(f"{ABS_PATH}/c/2.c", "r") as f:
+      EXAMPLE_CODE2 = f.read()
+
+    with open(f"{ABS_PATH}/c/2_spec.c", "r") as f:
+      EXAMPLE_SPEC2 = f.read()
+      EXAMPLE_SPEC2 = "```\n" + EXAMPLE_SPEC2 + "\n```\n"
+
+    EXAMPLE_LTM_RESPONSE2 = """
+Let's break down the problem step by step and generate the ACSL specifications for the `bubbleSort` function.
+
+### 1. **Preconditions** (`requires`):
+The weakest preconditions for the `bubbleSort` function are:
+- Ensures the array `a` points to a valid memory block of at least `n` elements. Since the function accesses and modifies all elements of `a`, this condition is necessary for memory safety.
+- Assumes that the input array is non-empty. This prevents undefined behavior due to iteration over zero-length arrays.
+
+---
+
+### 2. **Postconditions** (`ensures`)
+The strongest postconditions for the `bubbleSort` function are:
+- Ensures that the array is sorted in non-decreasing order after execution by comparing all pairs of indices to ensure the ordering property.
+
+### 3. **Necessary Specifications**
+
+- **Outer Loop**
+  - Ensure that that the loop variable `i` stays within the appropriate range of array indices.
+  - Ensure the segment from index `i` to `n - 1` is sorted in non-decreasing order. This invariant becomes stronger as the algorithm progresses.
+  - Ensures transitional order: the maximum value in the unsorted prefix does not exceed the minimum value in the sorted suffix.
+  - Declares which variables and memory regions may be modified by the loop body.
+  - Specifies a decreasing variant ensures that the loop will eventually terminate.
+
+- **Inner Loop**
+  - Ensures the loop variable `j` stays within bounds during iteration over the unsorted section.
+  - Reiterates that ordering between the unsorted and sorted segments is preserved, even as elements are being swapped.
+  - Specifies modifications to variables and memory within the active segment.
+  - Specifies a decreasing variant ensures that the loop will eventually terminate.
+
+---
+
+### SPECIFICATION
+
+  """ + EXAMPLE_SPEC2
+
+    with open(f"{ABS_PATH}/c/3.c", "r") as f:
+      EXAMPLE_CODE3 = f.read()
+
+    with open(f"{ABS_PATH}/c/3_spec.c", "r") as f:
+      EXAMPLE_SPEC3 = f.read()
+      EXAMPLE_SPEC3 = "```\n" + EXAMPLE_SPEC3 + "\n```\n"
+
+    EXAMPLE_LTM_RESPONSE3 = """
+Let's break down the problem step by step and generate the ACSL specifications for the `checkArrayEquality` function.
+
+---
+
+### 1. **Preconditions** (`requires`):
+
+The weakest preconditions for the `checkArrayEquality` function are:
+- Guarantees that the function is not invoked on an empty array, thereby avoiding iteration over an invalid range.
+- Ensures that all elements of the input array `a` within the index range `[0, n-1]` are readable.
+- Ensures that all elements of the array `b` within the same index range are also readable.
+- Ensure that this function does not modify any memory location, which reflects its observational (pure) nature.
+
+---
+
+### 2. **Postconditions** (`ensures`):
+
+The strongest postconditions for the `checkArrayEquality` function are partitioned into *behaviors*, depending on the equality of the input arrays:
+
+- **Behavior `equal`**: If all elements of `a` and `b` are pairwise equal across the entire index range so that the function returns `1` to signify equality.
+- **Behavior `not_equal`**: If there exists at least one index where the corresponding elements differ, so that the function returns `0` to signify inequality.
+
+These behaviors are mutually exclusive and collectively exhaustive, meaning they cover all possible input scenarios without overlap.
+
+---
+
+### 3. **Necessary Specifications**
+
+- **Loop Annotations**: The function employs a `for` loop to iterate over the elements of the arrays. The associated loop specifications are as follows:
+  - Ensures the loop index `i` always remains within valid bounds throughout execution.
+  - Specifies that the only variable modified during each iteration is the loop index `i`.
+
+---
+
+### SPECIFICATION
+
+  """ + EXAMPLE_SPEC3
 
 _UNSUPPORTED_SUMNUMPRODUCT_QUANTIFIER_DESC = """
 OpenJML does not fully support JML's inductive quantifiers like \\num_of, \\sum, and \\product in specifications. These operators require inductive reasoning (e.g., counting elements, summing values over a range, or computing products), which is difficult for SMT solvers (the engines behind OpenJML and most of deductive verification tools) to handle.

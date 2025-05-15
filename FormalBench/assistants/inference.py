@@ -13,7 +13,7 @@ from .example import *
 from . import config
 import re
 
-def contains_jml_annotations(java_code):
+def contains_annotations(java_code):
     # Split the code into lines
     lines = java_code.splitlines()
     
@@ -62,19 +62,13 @@ class SpecInfer():
         os.makedirs(self.tmp_dir, exist_ok=True)
                 
         if language == "java":
-            if use_docker:
-                self.verifier = create_verifier("OpenJML")
-            else:
-                self.verifier = create_verifier("OpenJMLWithoutDocker")
-            if prompt_type == "intent":
-                self.gen_sys_mes = (
-                    "You are an expert in Java Modeling Language (JML). "
-                    "You will be provided with Java code snippets and their task descriptions. "
-                    "Your task is to generate JML specifications for the given Java code. "
-                    "The specifications should be written as annotations within the Java code and must be compatible with the OpenJML tool for verification. "
-                    "Ensure the specifications include detailed preconditions, postconditions, necessary loop invariants, invariants, assertions, and any relevant assumptions."
-                )
-            elif prompt_type == "two_shot":
+            if workflow != "only_gen":
+                if use_docker:
+                    self.verifier = create_verifier("OpenJML")
+                else:
+                    self.verifier = create_verifier("OpenJMLWithoutDocker")
+            
+            if prompt_type == "two_shot":
                 self.gen_sys_mes = (
                     "You are an expert in Java Modeling Language (JML). "
                     "You will be provided with Java code snippets. "
@@ -93,17 +87,47 @@ class SpecInfer():
                     "Your task is to generate JML specifications for the given Java code. "
                     "The specifications should be written as annotations within the Java code and must be compatible with the OpenJML tool for verification. "
                     "Ensure the specifications include detailed preconditions, postconditions, necessary loop invariants, invariants, assertions, and any relevant assumptions. "
+                    
                 )
                 
-            self.prompt_type = prompt_type
             self.language = "java"
             self.spec_language = "JML"
             self.gen_query = "Please generate JML specifications for the provided Java code." 
+            self.example_set = JavaExample
+        elif language == "c":
+            if workflow != "only_gen":
+                assert use_docker, "FramaC without docker is not implemented yet. Please use FramaC with docker."
+                self.verifier = create_verifier("FramaC")
+            
+            if prompt_type == "two_shot":
+                self.gen_sys_mes = (
+                    "You are an expert in Frama-C. "
+                    "You will be provided with C code snippets. "
+                    "Your task is to generate ACSL specifications for the given C code. "
+                    "The specifications should be written as annotations within the C code and must be compatible with the Frama-C tool for verification. "
+                    "Ensure the specifications include detailed preconditions, postconditions, necessary loop invariants, invariants, assertions, and any relevant assumptions. "
+                    "Also, ensure that necessary #include are maintained from the original code. "
+                    "Please adhere to the following syntax guidelines for ACSL: "
+                    "Specification language text is placed inside special C comments; its lexical structure mostly follows that of ANSI/ISO C."
+                )
+            else:  
+                self.gen_sys_mes = (
+                    "You are an expert in Frama-C. "
+                    "You will be provided with C code snippets. "
+                    "Your task is to generate ACSL specifications for the given C code. "
+                    "The specifications should be written as annotations within the C code and must be compatible with the Frama-C tool for verification. "
+                    "Ensure the specifications include detailed preconditions, postconditions, necessary loop invariants, invariants, assertions, and any relevant assumptions. "
+                    "Also, ensure that necessary #include are maintained from the original code."
+                )
+            self.language = "c"
+            self.spec_language = "ACSL"
+            self.gen_query = "Please generate ACSL specifications for the provided C code." 
+            self.example_set = CExample
         else:
             raise ValueError(
-                f"Currently, we only Java language is supported. Please select 'java' as the language."
+                f"Currently, we only Java and C language are supported. Please select 'java' or 'c' as the language."
             )
-        
+        self.prompt_type = prompt_type
         self.workflow_name = workflow
         
         if workflow == "basic":
@@ -156,9 +180,11 @@ class SpecInfer():
         language = state["lang"]
         tmp_path = os.path.join(self.tmp_dir, f"{class_name}.{language}")
         with open(tmp_path, "w") as f:
+            if self.language == "c" and "#include <limits.h>" not in curr_spec:
+                f.write("#include <limits.h>\n")
             f.write(curr_spec)
         
-        is_valid = contains_jml_annotations(curr_spec)
+        is_valid = contains_annotations(curr_spec)
         if not is_valid:
             print("Invalid JML annotations")
             new_state["analysis_results"].append((-4, "Invalid JML annotations", curr_spec))
@@ -216,15 +242,15 @@ class SpecInfer():
     def generate(self, code: str, class_name: str, config: dict, verbose=True):
         print(f"Generating specifications for {class_name} ...")
         if self.prompt_type in ["fs_ltm"]:
-            example_code1 = EXAMPLE_CODE2
-            example_code2 = EXAMPLE_CODE3
-            example_spec1 = EXAMPLE_LTM_RESPONSE2
-            example_spec2 = EXAMPLE_LTM_RESPONSE3
+            example_code1 = self.example_set.EXAMPLE_CODE2
+            example_code2 = self.example_set.EXAMPLE_CODE3
+            example_spec1 = self.example_set.EXAMPLE_LTM_RESPONSE2
+            example_spec2 = self.example_set.EXAMPLE_LTM_RESPONSE3
         else:
-            example_code1 = EXAMPLE_CODE1
-            example_code2 = EXAMPLE_CODE2
-            example_spec1 = EXAMPLE_SPEC1
-            example_spec2 = EXAMPLE_SPEC2
+            example_code1 = self.example_set.EXAMPLE_CODE1
+            example_code2 = self.example_set.EXAMPLE_CODE2
+            example_spec1 = self.example_set.EXAMPLE_SPEC1
+            example_spec2 = self.example_set.EXAMPLE_SPEC2
         
         query = {
             "gen_sys_mes": self.gen_sys_mes,

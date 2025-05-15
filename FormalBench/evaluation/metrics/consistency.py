@@ -3,6 +3,7 @@ import os
 from tqdm import tqdm
 import json
 from .. import create_verifier
+import os 
 
 def eval_consistency(
         spec_dir: str, 
@@ -10,7 +11,8 @@ def eval_consistency(
         verifier_name: str = "OpenJML",
         verifier_version: int = 21,
         timeout: int = 300,
-        language: str = "java"
+        language: str = "java",
+        re_evaluate: bool = False,
     ) -> Tuple[float, float, Dict]:
     """
     Measure the consistency metrics of a set of specifications againts their reference implementations
@@ -27,8 +29,12 @@ def eval_consistency(
         assert verifier_name == "OpenJML", "Only OpenJML is supported for Java programs"
         verifier = create_verifier(verifier_name, verifier_version)
         ending = ".java"
+    elif language == "c":
+        assert verifier_name == "FramaC", "Only FramaC is supported for C programs"
+        verifier = create_verifier(verifier_name, verifier_version)
+        ending = ".c"
     else:
-        raise ValueError("Unknown language: {}. Please select ['java']".format(language))
+        raise ValueError("Unknown language: {}. Please select ['java', 'c']".format(language))
     
     assert os.path.exists(spec_dir), "Spec directory does not exist"
     os.makedirs(analysis_dir, exist_ok=True)
@@ -40,31 +46,42 @@ def eval_consistency(
     total_evaluated_specs = len(evaluated_specs)
     
     print("Evaluating the consistency of {} specifications stored in {}".format(total_evaluated_specs, spec_dir))
-    
     number_of_failures = 0
     number_of_successes = 0
     number_of_unknown = 0
     
     for spec_name in tqdm(evaluated_specs):
-        spec_path = os.path.join(spec_dir, spec_name + ".java")
+        spec_path = os.path.join(spec_dir, spec_name + ending)
         analysis_path = os.path.join(analysis_dir, spec_name + ".json")
         if os.path.exists(analysis_path):
             print("Analysis result file exists. Loading the result")
             try:
                 with open(analysis_path, "r") as f:
                     result_dict = json.load(f)
+                    if re_evaluate or "analysis_results" not in result_dict:
+                        with open(spec_path, "r") as f:
+                            spec = f.read()
+                        n_errors, output = verifier.verify(spec_path, timeout=timeout)
+                        if "analysis_results" in result_dict and isinstance(result_dict["analysis_results"][0], list):
+                            result_dict["analysis_results"][-1] = [n_errors, output, spec]
+                        else:
+                            result_dict["analysis_results"] = [n_errors, output, spec]
+                        with open(analysis_path, "w") as f:
+                            json.dump(result_dict, f)
+                    
                     if isinstance(result_dict["analysis_results"][0], list):
                         n_errors, output, _ = result_dict["analysis_results"][-1]
                     else:
                         n_errors, output, _ = result_dict["analysis_results"]
+                
             except:
-                raise ValueError("Analysis result file is corrupted")
+                 raise ValueError("Analysis result file is corrupted")
         else:
             n_errors, output = verifier.verify(spec_path, timeout=timeout)
             spec = open(spec_path, "r").read()
             with open(analysis_path, "w") as f:
                 json.dump({"analysis_results": [n_errors, output, spec]}, f)
-        
+
         evaluation_results[spec_name] = {
             "details": (n_errors, output)
         }
