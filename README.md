@@ -6,7 +6,16 @@
 [![Dataset](https://img.shields.io/badge/Dataset-v1.0-yellow.svg)](https://huggingface.co/datasets/FormalBench/FormalBench/tree/main)
 
 
-This repository contains evaluation infrastructure for FormalBench including evaluation metrics and wrappers for calling LLMs 
+This repository contains evaluation infrastructure for FormalBench including evaluation metrics and wrappers for calling LLMs. If you found this repository to be useful, please cite our research paper:
+
+```
+@article{le2025can,
+  title={Can LLMs Reason About Program Semantics? A Comprehensive Evaluation of LLMs on Formal Specification Inference},
+  author={Le-Cong, Thanh and Le, Bach and Murray, Toby},
+  journal={arXiv preprint arXiv:2503.04779},
+  year={2025}
+}
+```
 
 ## Prerequisites
 

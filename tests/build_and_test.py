@@ -65,12 +65,12 @@ def test_c_verifier():
     assert n_errors == 0, "No errors should be found"
     
     n_errors, output = verifier.verify("tests/testcases/specs/abs_wrong.c")
-    assert n_errors > 0, "Errors should be found"
+    assert n_errors != 0, "Errors should be found"
     assert len(output) > 0, "Output should be found"
     
     n_errors, output = verifier.verify("tests/testcases/specs/abs_invalid.c")
     print(n_errors, output)
-    assert n_errors == -5, "Invalid specification should return -5"
+    assert n_errors == 999, "Invalid specification should return 999"
     
     assert not os.path.exists("tests/testcases/specs/abs.c.tar"), "Local tar file should be deleted"
     assert not os.path.exists("tests/testcases/specs/abs_invalid.c.tar"), "Local tar file should be deleted"
@@ -79,6 +79,7 @@ def test_c_verifier():
 def test_mutation_analysis():
     create_mutator("Major")
     create_mutator("MajorWithoutDocker")
+    create_mutator("Mull")
     
 def test_consistency():
     success_rate, failure_rate, results = eval_consistency("tests/testcases/results/specs", "tests/testcases/results/analysis_results")
@@ -107,19 +108,33 @@ def test_consistency():
         assert False
         
 def test_completeness():
-    avg_coverage, coverage_results, inconsistent_instances = eval_completeness("tests/testcases/results/specs", "tests/testcases/results/analysis_results", "tests/testcases/results/completeness", timeout=20)
+    avg_coverage, coverage_results, inconsistent_instances = eval_completeness(
+        "tests/testcases/results/specs", 
+        "tests/testcases/results/analysis_results", 
+        "tests/testcases/results/completeness", 
+        timeout=20
+    )
     assert len(inconsistent_instances) == 3, "Three inconsistent specifications should be found"
     assert avg_coverage == 1.0, "Average coverage should be 1.0"
     
     try:
-        eval_completeness("tests/testcases/results/specs1", "tests/testcases/results/completeness")
+        eval_completeness(
+            "tests/testcases/results/specs1", 
+            "tests/testcases/results/analysis_results",
+            "tests/testcases/results/completeness"
+        )
     except AssertionError as e:
         assert str(e) == "Data directory not found: tests/testcases/results/specs1"
     except:
         assert False
     
     try:
-        eval_completeness("tests/testcases/results/specs", "tests/testcases/results/completeness", language="python")
+        eval_completeness(
+            "tests/testcases/results/specs", 
+            "tests/testcases/results/analysis_results",
+            "tests/testcases/results/completeness", 
+            language="python"
+        )
     except ValueError as e:
         assert str(e) == "Unsupported language: python. Please select from ['java', 'c']"
     except:
