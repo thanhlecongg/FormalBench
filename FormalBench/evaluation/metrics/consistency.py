@@ -3,6 +3,7 @@ import os
 from tqdm import tqdm
 import json
 from .. import create_verifier
+import os 
 
 def eval_consistency(
         spec_dir: str, 
@@ -80,7 +81,7 @@ def eval_consistency(
             spec = open(spec_path, "r").read()
             with open(analysis_path, "w") as f:
                 json.dump({"analysis_results": [n_errors, output, spec]}, f)
-        
+
         evaluation_results[spec_name] = {
             "details": (n_errors, output)
         }
