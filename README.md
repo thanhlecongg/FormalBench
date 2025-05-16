@@ -12,8 +12,9 @@ This repository contains evaluation infrastructure for FormalBench including eva
 @article{le2025can,
   title={Can LLMs Reason About Program Semantics? A Comprehensive Evaluation of LLMs on Formal Specification Inference},
   author={Le-Cong, Thanh and Le, Bach and Murray, Toby},
-  journal={arXiv preprint arXiv:2503.04779},
-  year={2025}
+  booktitle={The 63rd Annual Meeting of the Association for Computational Linguistics},
+  year={2025},
+  url={https://openreview.net/forum?id=zXyiakJYzB}
 }
 ```
 
