@@ -28,7 +28,7 @@ def test_create_java_verifier():
     try:
         create_verifier("Unknown")
     except ValueError as e:
-        assert str(e) == "Unknown verifier: Unknown. Please select OpenJML for Java"
+        assert str(e) == "Unknown verifier: Unknown. Please select OpenJML for Java, FramaC for C, or Prusti for Rust"
     except:
         assert False
 
@@ -76,6 +76,34 @@ def test_c_verifier():
     assert not os.path.exists("tests/testcases/specs/abs_invalid.c.tar"), "Local tar file should be deleted"
     assert not os.path.exists("tests/testcases/specs/abs_wrong.c.tar"), "Local tar file should be deleted"
     
+def test_create_rust_verifier():
+    assert create_verifier("Prusti")
+    try:
+        create_verifier("PrustiWithoutDocker")
+    except NotImplementedError as e:
+        assert str(e) == "Prusti without docker is not implemented yet. Please use Prusti with docker."
+    except:
+        assert False
+
+def test_rust_verifier():
+    verifier = create_verifier("Prusti")
+    n_errors, output = verifier.verify("tests/testcases/specs/abs.rs")
+    assert n_errors == 0, "No errors should be found"
+
+    n_errors, output = verifier.verify("tests/testcases/specs/abs_wrong.rs")
+    assert n_errors > 0, "Errors should be found"
+
+    n_errors, output = verifier.verify("tests/testcases/specs/abs_invalid.rs")
+    assert n_errors == 999, "Invalid specification should return 999"
+
+    n_errors, output = verifier.verify("tests/testcases/specs/abs.rs", timeout=1)
+    assert n_errors == -1, "Timeout should be returned"
+    assert output == "Timeout", "Timeout should be returned"
+
+    assert not os.path.exists("tests/testcases/specs/abs.rs.tar"), "Local tar file should be deleted"
+    assert not os.path.exists("tests/testcases/specs/abs_wrong.rs.tar"), "Local tar file should be deleted"
+    assert not os.path.exists("tests/testcases/specs/abs_invalid.rs.tar"), "Local tar file should be deleted"
+
 def test_mutation_analysis():
     create_mutator("Major")
     create_mutator("MajorWithoutDocker")
@@ -96,7 +124,7 @@ def test_consistency():
     try:
         eval_consistency("", "", language="python")
     except ValueError as e:
-        assert str(e) == "Unknown language: python. Please select ['java', 'c']"
+        assert str(e) == "Unknown language: python. Please select ['java', 'c', 'rust']"
     except:
         assert False
         
@@ -130,12 +158,12 @@ def test_completeness():
     
     try:
         eval_completeness(
-            "tests/testcases/results/specs", 
+            "tests/testcases/results/specs",
             "tests/testcases/results/analysis_results",
-            "tests/testcases/results/completeness", 
+            "tests/testcases/results/completeness",
             language="python"
         )
     except ValueError as e:
-        assert str(e) == "Unsupported language: python. Please select from ['java', 'c']"
+        assert str(e) == "Unsupported language: python. Please select from ['java', 'c', 'rust']"
     except:
         assert False

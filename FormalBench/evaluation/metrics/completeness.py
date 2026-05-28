@@ -181,8 +181,12 @@ def eval_completeness(
         ending = ".c"
         verifier = create_verifier("FramaC")
         mutator = create_mutator("Mull")
+    elif language == "rust":
+        ending = ".rs"
+        verifier = create_verifier("Prusti")
+        mutator = create_mutator("CargoMutants")
     else:
-        raise ValueError("Unsupported language: {}. Please select from ['java', 'c']".format(language))
+        raise ValueError("Unsupported language: {}. Please select from ['java', 'c', 'rust']".format(language))
 
     if data_ids is None:
         benchmarks = os.listdir(spec_dir)

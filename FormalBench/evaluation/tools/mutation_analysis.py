@@ -36,9 +36,13 @@ def create_mutator(name: str) -> "MutantGenerator":
         raise NotImplementedError(
             "Mull should be run in a docker container. Please use Mull instead."
         )
+    elif name == "CargoMutants":
+        raise NotImplementedError(
+            "CargoMutants for Rust is not implemented yet."
+        )
     else:
         raise ValueError(
-            "Unknown mutator: {}. Please select Major for Java programs"
+            "Unknown mutator: {}. Please select Major for Java, Mull for C, or CargoMutants for Rust"
             .format(name)
         )
 

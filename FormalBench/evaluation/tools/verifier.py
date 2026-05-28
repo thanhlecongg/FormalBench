@@ -30,9 +30,15 @@ def create_verifier(name: str, version: int = 21) -> "Verifier":
         raise NotImplementedError(
             "FramaC without docker is not implemented yet. Please use FramaC with docker."
         )
+    elif name == "Prusti":
+        return PrustiVerifier()
+    elif name == "PrustiWithoutDocker":
+        raise NotImplementedError(
+            "Prusti without docker is not implemented yet. Please use Prusti with docker."
+        )
     else:
         raise ValueError(
-            "Unknown verifier: {}. Please select OpenJML for Java"
+            "Unknown verifier: {}. Please select OpenJML for Java, FramaC for C, or Prusti for Rust"
             .format(name))
 
 class Verifier(ABC):
@@ -376,7 +382,99 @@ class FramaCVerifier(Verifier):
         else:
             assert output == "Timeout", "Unknown output: {}".format(output)
             return [-1, output]
-    
+
+    def clean_up(self):
+        print("Cleaning up the docker container")
+        self.container.stop()
+        self.container.remove()
+
+
+class PrustiVerifier(Verifier):
+
+    def __init__(self) -> None:
+        self.home_dir = "/home/specInfer"
+        self.image_name = "formalbench/prusti:latest"
+        self.template_dir = "/home/prusti-template"
+        self.client = docker.from_env()
+        self.container = self.client.containers.run(
+            self.image_name,
+                    "/bin/bash",
+                    detach=True,
+                    tty=True,
+                    volumes={
+                        os.getcwd(): {
+                            "bind": self.home_dir,
+                            "mode": "rw"
+                        }
+                    },
+            )
+
+        self.tmp_dir = os.path.join("/tmp/")
+        assert self.container.status == "created", "Container failed to start"
+        atexit.register(self.clean_up)
+
+    def verify(self,
+               path: str,
+               timeout: int = 1800,
+               basedir: str = ""
+            ) -> Tuple[int, str]:
+
+        path = os.path.abspath(path)
+        if basedir == "":
+            project_dir = os.path.join(self.tmp_dir, "prusti-verify")
+        else:
+            project_dir = os.path.join(self.tmp_dir, basedir, "prusti-verify")
+
+        self.container.exec_run(["rm", "-rf", project_dir])
+        self.container.exec_run(["cp", "-r", self.template_dir, project_dir])
+
+        copy_to_container(self.container, path, self.tmp_dir)
+        path_in_container = os.path.join(self.tmp_dir, os.path.basename(path))
+        src_path = os.path.join(project_dir, "src", "lib.rs")
+        self.container.exec_run(["cp", path_in_container, src_path])
+
+        cmd = "timeout {} cargo-prusti".format(timeout)
+        cmd_splitted = cmd.split(" ")
+        print("Executing command: {}".format(cmd))
+
+        exec_result = self.container.exec_run(cmd_splitted, workdir=project_dir)
+        if exec_result.exit_code == 124:
+            tar_file = path + ".tar"
+            if os.path.exists(tar_file):
+                os.remove(tar_file)
+            return (-1, "Timeout")
+        output = exec_result.output.decode("utf-8")
+
+        tar_file = path + ".tar"
+        if os.path.exists(tar_file):
+            os.remove(tar_file)
+        return self.extract_output(output)
+
+    def extract_output(self, output: str) -> Tuple[int, str]:
+        output = output.replace(os.getcwd() + "/", "")
+
+        if "Successful verification" in output:
+            return (0, output)
+
+        verification_errors = len(re.findall(
+            r"error: \[Prusti: verification error\]", output
+        ))
+        compilation_errors = len(re.findall(
+            r"error\[E\d+\]", output
+        ))
+        if compilation_errors == 0 and "could not compile" in output:
+            compilation_errors = len(re.findall(r"^error:", output, re.MULTILINE))
+
+        if verification_errors > 0:
+            return (verification_errors, output)
+        elif compilation_errors > 0:
+            return (999, output)
+        elif "internal compiler error" in output or "Prusti internal error" in output:
+            return (-5, output)
+        else:
+            print("Output: {}".format(output))
+            return (0, output)
+
     def clean_up(self):
         print("Cleaning up the docker container")
         self.container.stop()
