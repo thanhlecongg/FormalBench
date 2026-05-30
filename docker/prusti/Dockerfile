@@ -30,8 +30,5 @@ RUN printf '[package]\nname = "prusti-verify"\nversion = "0.1.0"\nedition = "202
 RUN cargo build || true
 RUN cargo build 2>&1 | tail -5
 
-# Install cargo-mutants for mutation analysis.
-RUN cargo install cargo-mutants
-
 WORKDIR /
 CMD ["/bin/bash"]

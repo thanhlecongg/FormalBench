@@ -324,7 +324,7 @@ class CargoMutantsGenerator(MutantGenerator):
     def __init__(self) -> None:
         self.tmp_dir = "/tmp/"
         self.home_dir = "/home/FormalBench"
-        self.image_name = "formalbench/prusti:latest"
+        self.image_name = "formalbench/cargo-mutants:latest"
 
         self.client = docker.from_env()
         self.container = self.client.containers.run(

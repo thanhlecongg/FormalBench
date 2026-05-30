@@ -108,6 +108,24 @@ def test_mutation_analysis():
     create_mutator("Major")
     create_mutator("MajorWithoutDocker")
     create_mutator("Mull")
+
+def test_create_rust_mutator():
+    assert create_mutator("CargoMutants")
+    try:
+        create_mutator("Unknown")
+    except ValueError as e:
+        assert "Unknown mutator" in str(e)
+    except:
+        assert False
+
+def test_rust_mutator():
+    mutator = create_mutator("CargoMutants")
+    out_dir = "tests/testcases/results/rust_mutants"
+    mutator.generate_mutants("tests/testcases/code/abs.rs", out_dir)
+    mutants_dir = os.path.join(out_dir, "mutants")
+    assert os.path.exists(mutants_dir), "Mutants directory should be created"
+    mutant_files = os.listdir(mutants_dir)
+    assert len(mutant_files) > 0, "At least one mutant should be generated"
     
 def test_consistency():
     success_rate, failure_rate, results = eval_consistency("tests/testcases/results/specs", "tests/testcases/results/analysis_results")
