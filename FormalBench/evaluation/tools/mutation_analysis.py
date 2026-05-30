@@ -36,9 +36,11 @@ def create_mutator(name: str) -> "MutantGenerator":
         raise NotImplementedError(
             "Mull should be run in a docker container. Please use Mull instead."
         )
+    elif name == "CargoMutants":
+        return CargoMutantsGenerator()
     else:
         raise ValueError(
-            "Unknown mutator: {}. Please select Major for Java programs"
+            "Unknown mutator: {}. Please select Major for Java, Mull for C, or CargoMutants for Rust"
             .format(name)
         )
 
@@ -315,3 +317,93 @@ class MullMutantGenerator(MutantGenerator):
         self.container.remove()
         if os.path.exists(os.path.abspath(os.path.join(_LIB_DIR, "config/mull.yml.tar"))):
             os.remove(os.path.abspath(os.path.join(_LIB_DIR, "config/mull.yml.tar")))
+
+
+class CargoMutantsGenerator(MutantGenerator):
+
+    def __init__(self) -> None:
+        self.tmp_dir = "/tmp/"
+        self.home_dir = "/home/FormalBench"
+        self.image_name = "formalbench/cargo-mutants:latest"
+
+        self.client = docker.from_env()
+        self.container = self.client.containers.run(
+            self.image_name,
+            "/bin/bash",
+            detach=True,
+            tty=True,
+            volumes={os.getcwd(): {
+                         'bind': self.home_dir,
+                         'mode': 'rw'
+                     }},
+        )
+
+        assert self.container.status == "created", "Container failed to start"
+        atexit.register(self.clean_up)
+
+    def generate_mutants(self, path: str, out_dir: str):
+        os.makedirs(out_dir, exist_ok=True)
+
+        file_name = os.path.basename(path)
+        copy_to_container(self.container, path, self.tmp_dir)
+        path_in_container = os.path.join(self.tmp_dir, file_name)
+
+        project_dir = "/tmp/mutant-project"
+        execute_command_in_container(
+            self.container,
+            f"rm -rf {project_dir} && cargo init --lib {project_dir}"
+        )
+
+        execute_command_in_container(
+            self.container,
+            f"cp {path_in_container} {project_dir}/src/lib.rs"
+        )
+
+        copy_to_container(
+            self.container,
+            os.path.abspath(os.path.join(
+                os.path.dirname(path), "..", "Cargo.toml"
+            )),
+            project_dir + "/"
+        ) if os.path.exists(os.path.join(
+            os.path.dirname(path), "..", "Cargo.toml"
+        )) else None
+
+        output = execute_command_in_container(
+            self.container,
+            f"cd {project_dir} && cargo mutants --output /tmp/mutants-out"
+        )
+        print(output)
+
+        exec_result = self.container.exec_run("ls -1 /tmp/mutants-out/mutants")
+        if exec_result.exit_code != 0:
+            print("[WARNING]: No mutants generated")
+            return
+
+        mutant_dirs = exec_result.output.decode("utf-8").strip().split("\n")
+        mutant_dirs = [d for d in mutant_dirs if d]
+
+        for idx, mutant_dir in enumerate(mutant_dirs):
+            src_path = f"/tmp/mutants-out/mutants/{mutant_dir}/src/lib.rs"
+            check = self.container.exec_run(f"test -f {src_path}")
+            if check.exit_code != 0:
+                continue
+
+            mutant_out_dir = os.path.join(out_dir, "mutants", str(idx))
+            os.makedirs(mutant_out_dir, exist_ok=True)
+            copy_from_container(
+                self.container, src_path, mutant_out_dir
+            )
+            out_file = os.path.join(mutant_out_dir, "lib.rs")
+            final_file = os.path.join(mutant_out_dir, file_name)
+            if os.path.exists(out_file) and out_file != final_file:
+                os.rename(out_file, final_file)
+
+        self.container.exec_run(f"rm -rf {path_in_container}")
+        self.container.exec_run("rm -rf /tmp/mutants-out")
+        self.container.exec_run(f"rm -rf {project_dir}")
+
+    def clean_up(self):
+        print("Cleaning up the docker container")
+        self.container.stop()
+        self.container.remove()

@@ -33,8 +33,12 @@ def eval_consistency(
         assert verifier_name == "FramaC", "Only FramaC is supported for C programs"
         verifier = create_verifier(verifier_name, verifier_version)
         ending = ".c"
+    elif language == "rust":
+        assert verifier_name == "Prusti", "Only Prusti is supported for Rust programs"
+        verifier = create_verifier(verifier_name)
+        ending = ".rs"
     else:
-        raise ValueError("Unknown language: {}. Please select ['java', 'c']".format(language))
+        raise ValueError("Unknown language: {}. Please select ['java', 'c', 'rust']".format(language))
     
     assert os.path.exists(spec_dir), "Spec directory does not exist"
     os.makedirs(analysis_dir, exist_ok=True)
